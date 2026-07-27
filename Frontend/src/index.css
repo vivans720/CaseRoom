@@ -133,3 +133,14 @@ input[type="password"]::-ms-clear {
 .animate-message-highlight {
   animation: message-highlight 2s ease-in-out;
 }
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+/* Hide scrollbar for IE, Edge and Firefox */
+.no-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+

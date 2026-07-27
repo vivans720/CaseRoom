@@ -42,29 +42,34 @@ export const MediaVaultPanel = ({
 }: MediaVaultPanelProps): JSX.Element => {
   const [activeTab, setActiveTab] = useState<VaultCategory>("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState(searchQuery);
   const [items, setItems] = useState<VaultItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
   const [previewItem, setPreviewItem] = useState<VaultItem | null>(null);
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+    }, 250);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
   const fetchVault = useCallback(async () => {
     setIsLoading(true);
     try {
-      const data = await getCaseVaultItems(caseId, activeTab, searchQuery);
+      const data = await getCaseVaultItems(caseId, activeTab, debouncedSearch);
       setItems(data.items || []);
     } catch {
       setItems([]);
     } finally {
       setIsLoading(false);
     }
-  }, [caseId, activeTab, searchQuery]);
+  }, [caseId, activeTab, debouncedSearch]);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      void fetchVault();
-    }, 200);
-
-    return () => clearTimeout(timer);
+    void fetchVault();
   }, [fetchVault]);
 
   const handleDownload = async (item: VaultItem) => {
@@ -244,7 +249,7 @@ export const MediaVaultPanel = ({
               return (
                 <div
                   key={item.id}
-                  className="p-3 rounded-lg border border-border hover:border-primary/40 bg-white hover:bg-surface-secondary/50 transition-all flex flex-col gap-2 group"
+                  className="p-3 rounded-lg border border-border hover:border-primary/40 bg-white hover:bg-surface-secondary/50 transition-all flex flex-col gap-2 group overflow-hidden"
                 >
                   <div className="flex items-start gap-2.5 min-w-0">
                     <span className="text-xl shrink-0 mt-0.5" aria-hidden="true">
@@ -278,7 +283,7 @@ export const MediaVaultPanel = ({
                         </span>
                       )}
 
-                      <div className="flex items-center gap-2 text-xs text-text-tertiary mt-0.5">
+                      <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-text-tertiary mt-0.5">
                         {item.sender?.name && <span>{item.sender.name}</span>}
                         {item.createdAt && <span>· {formatDate(item.createdAt)}</span>}
                         {item.fileSize && <span>· {formatFileSize(item.fileSize)}</span>}
@@ -287,31 +292,43 @@ export const MediaVaultPanel = ({
                   </div>
 
                   {/* Item Actions */}
-                  <div className="flex items-center justify-end gap-2 pt-1 border-t border-border/40">
+                  <div className="flex items-center justify-end gap-1.5 pt-2 border-t border-border/40 w-full min-w-0">
                     {(isDoc || isImg) && item.fileUrl && (
                       <button
                         type="button"
                         onClick={() => setPreviewItem(item)}
-                        className="text-xs text-indigo-600 hover:text-indigo-800 font-medium px-2 py-1 rounded hover:bg-indigo-50 transition-colors flex items-center gap-1"
+                        className="group/btn text-xs text-indigo-600 hover:text-indigo-800 font-medium px-2 py-1 rounded-md hover:bg-indigo-50 transition-all flex items-center gap-1.5"
+                        title="Preview & Annotate"
                       >
-                        <span>👁️</span> Preview & Annotate
+                        <span className="text-sm">👁️</span>
+                        <span className="hidden group-hover/btn:inline text-[11px] font-semibold whitespace-nowrap">
+                          Preview
+                        </span>
                       </button>
                     )}
                     <button
                       type="button"
                       onClick={() => onJumpToMessage(item.messageId)}
-                      className="text-xs text-text-secondary hover:text-primary px-2 py-1 rounded hover:bg-surface-hover transition-colors flex items-center gap-1"
+                      className="group/btn text-xs text-text-secondary hover:text-primary px-2 py-1 rounded-md hover:bg-surface-hover transition-all flex items-center gap-1.5"
+                      title="View in Chat"
                     >
-                      <span>💬</span> View in Chat
+                      <span className="text-sm">💬</span>
+                      <span className="hidden group-hover/btn:inline text-[11px] font-semibold whitespace-nowrap">
+                        View in Chat
+                      </span>
                     </button>
                     {!isLink && item.fileUrl && (
                       <button
                         type="button"
                         data-testid={`download-btn-${item.id}`}
                         onClick={() => handleDownload(item)}
-                        className="text-xs font-medium text-primary hover:bg-primary-light/50 px-2 py-1 rounded transition-colors flex items-center gap-1"
+                        className="group/btn text-xs font-medium text-primary hover:bg-primary-light/50 px-2 py-1 rounded-md transition-all flex items-center gap-1.5"
+                        title="Download"
                       >
-                        <span>⬇️</span> Download
+                        <span className="text-sm">⬇️</span>
+                        <span className="hidden group-hover/btn:inline text-[11px] font-semibold whitespace-nowrap">
+                          Download
+                        </span>
                       </button>
                     )}
                   </div>
