@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:7
+    container_name: caseroom-mongodb
+    restart: unless-stopped
+
+    ports:
+      - "27017:27017"
+
+    volumes:
+      - caseroom-data:/data/db
+
+    networks:
+      - caseroom-network
+
+  backend:
+    build: ./Backend
+    container_name: caseroom-backend
+    restart: unless-stopped
+
+    ports:
+      - "5000:5000"
+
+    env_file:
+      - .env
+
+    depends_on:
+      - mongodb
+
+    networks:
+      - caseroom-network
+
+  frontend:
+    build: ./Frontend
+    container_name: caseroom-frontend
+    restart: unless-stopped
+
+    ports:
+      - "80:80"
+
+    depends_on:
+      - backend
+
+    networks:
+      - caseroom-network
+
+networks:
+  caseroom-network:
+    driver: bridge
+
+volumes:
+  caseroom-data:

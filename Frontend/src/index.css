@@ -1,0 +1,135 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #5B4CF3;
+  --color-primary-dark: #4B3BD9;
+  --color-primary-light: #f0eeff;
+  --color-primary-lighter: #f7f5ff;
+
+  --color-surface: #ffffff;
+  --color-surface-secondary: #f8f7fc;
+  --color-surface-tertiary: #f3f1fa;
+  --color-surface-hover: #ece9f8;
+
+  --color-text-primary: #111827;
+  --color-text-secondary: #64748b;
+  --color-text-tertiary: #94a3b8;
+
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-danger: #ef4444;
+
+  --color-border: #e2e8f0;
+  --color-border-light: #f1f5f9;
+
+  --color-msg-sent: #5B4CF3;
+  --color-msg-sent-text: #ffffff;
+  --color-msg-received: #f3f1fa;
+  --color-msg-received-text: #111827;
+
+  --font-sans: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md:
+    0 4px 6px -1px rgba(91, 76, 243, 0.08),
+    0 2px 4px -2px rgba(0, 0, 0, 0.05);
+  --shadow-lg:
+    0 10px 15px -3px rgba(91, 76, 243, 0.12),
+    0 4px 6px -4px rgba(0, 0, 0, 0.04);
+
+  --shadow-msg: 0 2px 8px rgba(91, 76, 243, 0.15);
+}
+
+.msg-bubble {
+  position: relative;
+  box-shadow: var(--shadow-msg);
+  overflow: hidden;
+}
+
+.media-shadow {
+  box-shadow: 0 4px 12px rgba(91, 76, 243, 0.12), 0 2px 4px rgba(0, 0, 0, 0.06);
+}
+
+.msg-bubble-tail-own::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: -8px;
+  width: 12px;
+  height: 12px;
+  background-color: var(--color-msg-sent);
+  clip-path: polygon(0 0, 0% 100%, 100% 0);
+}
+
+.msg-bubble-tail-received::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -8px;
+  width: 12px;
+  height: 12px;
+  background-color: var(--color-msg-received);
+  clip-path: polygon(100% 0, 0 0, 100% 100%);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-height: 100%;
+  background-color: var(--color-surface);
+}
+
+body {
+  min-height: 100%;
+  margin: 0;
+  background-color: var(--color-surface);
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear {
+  display: none;
+}
+
+@keyframes message-highlight {
+  0% {
+    background-color: transparent;
+  }
+  20% {
+    background-color: #f3e8ff;
+  }
+  80% {
+    background-color: #f3e8ff;
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+.animate-message-highlight {
+  animation: message-highlight 2s ease-in-out;
+}

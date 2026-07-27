@@ -1,0 +1,37 @@
+# Dependencies
+node_modules/
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build & Coverage
+dist/
+build/
+coverage/
+.nyc_output/
+
+# Cache & Runtime
+.cache/
+.eslintcache
+*.tsbuildinfo
+pids/
+*.pid
+*.seed
+
+# OS & Editor
+.DS_Store
+.vscode/
+.idea/
+
+# Internal docs
+task.md
+implementation_plan_backend.md
