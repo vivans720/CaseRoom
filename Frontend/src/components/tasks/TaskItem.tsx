@@ -1,5 +1,5 @@
 import React from "react";
-import { CheckCircle2, Circle, Clock, Trash2, AlertCircle } from "lucide-react";
+import { CheckCircle2, Circle, Clock, Trash2 } from "lucide-react";
 import type { Task, TaskStatus } from "../../types";
 
 interface TaskItemProps {
