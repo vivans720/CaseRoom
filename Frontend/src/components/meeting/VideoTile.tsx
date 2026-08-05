@@ -1,4 +1,4 @@
-import { useEffect, useRef, type JSX } from "react";
+import { useEffect, useRef, useState, type JSX } from "react";
 import type { PeerMediaState } from "../../types";
 
 interface VideoTileProps {
@@ -93,6 +93,7 @@ export const VideoTile = ({
   onTogglePin,
 }: VideoTileProps): JSX.Element => {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const [isAudioSpeaking, setIsAudioSpeaking] = useState(false);
 
   useEffect(() => {
     if (videoRef.current && stream) {
@@ -103,11 +104,66 @@ export const VideoTile = ({
     }
   }, [stream, mediaState.video, mediaState.screenShare]);
 
+  // Real-time audio volume detection for green active speaker border
+  useEffect(() => {
+    if (!stream || !mediaState.audio) {
+      setIsAudioSpeaking(false);
+      return;
+    }
+
+    const audioTracks = stream.getAudioTracks();
+    if (audioTracks.length === 0 || !audioTracks[0].enabled) {
+      setIsAudioSpeaking(false);
+      return;
+    }
+
+    let animId: number;
+    let audioCtx: AudioContext | null = null;
+
+    try {
+      const AudioContextClass =
+        window.AudioContext ||
+        (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      if (!AudioContextClass) return;
+
+      audioCtx = new AudioContextClass();
+      const source = audioCtx.createMediaStreamSource(stream);
+      const analyser = audioCtx.createAnalyser();
+      analyser.fftSize = 256;
+      analyser.smoothingTimeConstant = 0.4;
+      source.connect(analyser);
+
+      const dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+      const checkVolume = () => {
+        analyser.getByteFrequencyData(dataArray);
+        let sum = 0;
+        for (let i = 0; i < dataArray.length; i++) {
+          sum += dataArray[i];
+        }
+        const avg = sum / dataArray.length;
+        setIsAudioSpeaking(avg > 10);
+        animId = requestAnimationFrame(checkVolume);
+      };
+
+      checkVolume();
+    } catch (err) {
+      console.warn("AudioContext speaker detection error:", err);
+    }
+
+    return () => {
+      if (animId) cancelAnimationFrame(animId);
+      if (audioCtx && audioCtx.state !== "closed") {
+        audioCtx.close().catch(() => {});
+      }
+    };
+  }, [stream, mediaState.audio]);
+
   const showVideo = Boolean(
     stream && (mediaState.screenShare || (mediaState.video && isVideoAvailable)),
   );
   const handRaised = isHandRaised || mediaState.isHandRaised;
-  const speaking = isSpeaking || mediaState.isSpeaking;
+  const speaking = isSpeaking || mediaState.isSpeaking || isAudioSpeaking;
 
   const initials = name
     .split(" ")
@@ -119,7 +175,7 @@ export const VideoTile = ({
   return (
     <div
       className={`meeting-tile relative ${
-        speaking ? "ring-4 ring-emerald-500 shadow-lg shadow-emerald-500/20" : ""
+        speaking ? "meeting-tile--speaking ring-4 ring-emerald-500 shadow-xl shadow-emerald-500/30" : ""
       } ${isPinned ? "ring-2 ring-primary" : ""}`}
     >
       {/* Video element */}
@@ -155,6 +211,13 @@ export const VideoTile = ({
       {handRaised && (
         <div className="absolute top-3 left-3 bg-amber-500 text-white p-1 px-2 rounded-full text-xs font-bold shadow-md animate-bounce flex items-center gap-1 z-10">
           <span>✋ Hand Raised</span>
+        </div>
+      )}
+
+      {/* Active Speaker badge */}
+      {speaking && !handRaised && (
+        <div className="absolute top-3 left-3 bg-emerald-500 text-white p-1 px-2.5 rounded-full text-xs font-bold shadow-md flex items-center gap-1 z-10 animate-pulse">
+          <span>🔊 Speaking</span>
         </div>
       )}
 
