@@ -35,6 +35,7 @@ interface MeetingContextValue {
   // State
   isInMeeting: boolean;
   viewMode: MeetingViewMode;
+  layoutMode: "grid" | "speaker";
   localStream: MediaStream | null;
   videoAvailable: boolean;
   peers: Map<string, MeetingPeer>;
@@ -46,6 +47,9 @@ interface MeetingContextValue {
   activeSpeakerId: string | null;
   pinnedUserId: string | null;
   isHandRaised: boolean;
+  isLocked: boolean;
+  isAudioOnly: boolean;
+  durationSeconds: number;
 
   // Actions
   joinMeeting: (caseId: string) => Promise<void>;
@@ -53,9 +57,14 @@ interface MeetingContextValue {
   toggleCamera: () => void;
   toggleMic: () => void;
   toggleRaiseHand: () => void;
+  toggleLock: () => void;
+  muteAll: () => void;
+  removeParticipant: (targetUserId: string) => void;
   startScreenShare: () => Promise<void>;
   stopScreenShare: () => void;
   setPinnedUserId: (userId: string | null) => void;
+  setLayoutMode: (mode: "grid" | "speaker") => void;
+  toggleAudioOnly: () => void;
   setViewMode: (mode: MeetingViewMode) => void;
   minimize: () => void;
   expand: () => void;
@@ -132,6 +141,22 @@ export const MeetingProvider = ({
   const [activeSpeakerId, setActiveSpeakerId] = useState<string | null>(null);
   const [pinnedUserId, setPinnedUserId] = useState<string | null>(null);
   const [isHandRaised, setIsHandRaised] = useState(false);
+  const [layoutMode, setLayoutMode] = useState<"grid" | "speaker">("grid");
+  const [isLocked, setIsLocked] = useState(false);
+  const [isAudioOnly, setIsAudioOnly] = useState(false);
+  const [durationSeconds, setDurationSeconds] = useState(0);
+
+  // Live duration counter
+  useEffect(() => {
+    if (!isInMeeting) {
+      setDurationSeconds(0);
+      return;
+    }
+    const interval = setInterval(() => {
+      setDurationSeconds((prev) => prev + 1);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [isInMeeting]);
 
   // Refs for stable access in callbacks
   const webrtcRef = useRef<WebRTCManager | null>(null);
@@ -324,6 +349,31 @@ export const MeetingProvider = ({
       mediaState: newState,
     });
   }, [socket, isHandRaised, mediaState]);
+
+  const toggleLock = useCallback(() => {
+    if (!socket || !caseIdRef.current) return;
+    socket.emit("meeting:lock-toggle", { caseId: caseIdRef.current });
+  }, [socket]);
+
+  const muteAll = useCallback(() => {
+    if (!socket || !caseIdRef.current) return;
+    socket.emit("meeting:host-mute-all", { caseId: caseIdRef.current });
+  }, [socket]);
+
+  const removeParticipant = useCallback(
+    (targetUserId: string) => {
+      if (!socket || !caseIdRef.current) return;
+      socket.emit("meeting:host-remove-user", {
+        caseId: caseIdRef.current,
+        targetUserId,
+      });
+    },
+    [socket],
+  );
+
+  const toggleAudioOnly = useCallback(() => {
+    setIsAudioOnly((prev) => !prev);
+  }, []);
 
   // ─── Screen Share ─────────────────────────────────────────────────────────
 
@@ -633,6 +683,30 @@ export const MeetingProvider = ({
       });
     };
 
+    const onForceMute = () => {
+      if (localStreamRef.current) {
+        localStreamRef.current.getAudioTracks().forEach((t) => (t.enabled = false));
+      }
+      setMediaState((prev) => ({ ...prev, audio: false }));
+    };
+
+    const onUserKicked = (data: { targetUserId: string; removedBy: string }) => {
+      if (user && user._id === data.targetUserId) {
+        cleanup();
+        setMeetingError(`You were removed from the meeting by ${data.removedBy}`);
+      } else {
+        setPeers((prev) => {
+          const next = new Map(prev);
+          next.delete(data.targetUserId);
+          return next;
+        });
+      }
+    };
+
+    const onLockChanged = (data: { isLocked: boolean }) => {
+      setIsLocked(data.isLocked);
+    };
+
     // Error from server
     const onError = (data: { message: string }) => {
       setMeetingError(data.message);
@@ -649,6 +723,9 @@ export const MeetingProvider = ({
     socket.on("meeting:screen-share-started", onScreenShareStarted);
     socket.on("meeting:screen-share-stopped", onScreenShareStopped);
     socket.on("meeting:user-hand-raised", onUserHandRaised);
+    socket.on("meeting:force-mute", onForceMute);
+    socket.on("meeting:user-kicked", onUserKicked);
+    socket.on("meeting:lock-changed", onLockChanged);
     socket.on("meeting:error", onError);
 
     return () => {
@@ -663,15 +740,19 @@ export const MeetingProvider = ({
       socket.off("meeting:screen-share-started", onScreenShareStarted);
       socket.off("meeting:screen-share-stopped", onScreenShareStopped);
       socket.off("meeting:user-hand-raised", onUserHandRaised);
+      socket.off("meeting:force-mute", onForceMute);
+      socket.off("meeting:user-kicked", onUserKicked);
+      socket.off("meeting:lock-changed", onLockChanged);
       socket.off("meeting:error", onError);
     };
-  }, [socket, cleanup]);
+  }, [socket, cleanup, user]);
 
   // ─── Context Value ────────────────────────────────────────────────────────
 
   const value: MeetingContextValue = {
     isInMeeting,
     viewMode,
+    layoutMode,
     localStream,
     videoAvailable,
     peers,
@@ -683,14 +764,22 @@ export const MeetingProvider = ({
     activeSpeakerId,
     pinnedUserId,
     isHandRaised,
+    isLocked,
+    isAudioOnly,
+    durationSeconds,
     joinMeeting,
     leaveMeeting,
     toggleCamera,
     toggleMic,
     toggleRaiseHand,
+    toggleLock,
+    muteAll,
+    removeParticipant,
     startScreenShare,
     stopScreenShare,
     setPinnedUserId,
+    setLayoutMode,
+    toggleAudioOnly,
     setViewMode,
     minimize,
     expand,

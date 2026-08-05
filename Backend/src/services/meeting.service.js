@@ -98,6 +98,17 @@ const endMeeting = async (meetingId) => {
 };
 
 /**
+ * Toggle meeting lock status.
+ */
+const toggleLockMeeting = async (meetingId) => {
+  const meeting = await Meeting.findById(meetingId);
+  if (!meeting) return null;
+  meeting.isLocked = !meeting.isLocked;
+  await meeting.save();
+  return meeting;
+};
+
+/**
  * Get meeting history for a case.
  */
 const getMeetingHistory = async (caseId, limit = 20) => {
@@ -116,5 +127,6 @@ module.exports = {
   removeParticipant,
   getActiveParticipantCount,
   endMeeting,
+  toggleLockMeeting,
   getMeetingHistory,
 };

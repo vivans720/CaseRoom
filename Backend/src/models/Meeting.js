@@ -46,6 +46,10 @@ const meetingSchema = new mongoose.Schema(
       enum: ["active", "ended"],
       default: "active",
     },
+    isLocked: {
+      type: Boolean,
+      default: false,
+    },
     participants: [meetingParticipantSchema],
   },
   {

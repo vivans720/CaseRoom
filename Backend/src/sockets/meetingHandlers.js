@@ -73,6 +73,18 @@ const handleMeetingJoin =
         });
       }
 
+      // Check if meeting is locked
+      if (existingMeeting && existingMeeting.isLocked) {
+        const isAlreadyParticipant = existingMeeting.participants.some(
+          (p) => p.user.toString() === socket.user._id.toString() && !p.leftAt,
+        );
+        if (!isAlreadyParticipant) {
+          return socket.emit("meeting:error", {
+            message: "Meeting is locked by host",
+          });
+        }
+      }
+
       // Atomic find-or-create (prevents duplicate meetings)
       const meeting = await meetingService.findOrCreateMeeting(
         caseId,
@@ -343,6 +355,36 @@ const handleRaiseHand = (socket) => ({ caseId, isHandRaised }) => {
   });
 };
 
+const handleHostMuteAll = (io, socket) => async ({ caseId }) => {
+  if (!caseId) return;
+  const caseDoc = await Case.findById(caseId);
+  const role = getUserRole(caseDoc, socket.user._id);
+  if (role !== "Admin" && role !== "Editor") return;
+  const room = getMeetingRoom(caseId);
+  socket.to(room).emit("meeting:force-mute");
+};
+
+const handleHostRemoveUser = (io, socket) => async ({ caseId, targetUserId }) => {
+  if (!caseId || !targetUserId) return;
+  const caseDoc = await Case.findById(caseId);
+  const role = getUserRole(caseDoc, socket.user._id);
+  if (role !== "Admin" && role !== "Editor") return;
+  const room = getMeetingRoom(caseId);
+  io.to(room).emit("meeting:user-kicked", { targetUserId, removedBy: socket.user.name });
+};
+
+const handleLockToggle = (io, socket) => async ({ caseId }) => {
+  if (!caseId) return;
+  const caseDoc = await Case.findById(caseId);
+  const role = getUserRole(caseDoc, socket.user._id);
+  if (role !== "Admin" && role !== "Editor") return;
+  const meeting = await meetingService.getActiveMeeting(caseId);
+  if (!meeting) return;
+  const updated = await meetingService.toggleLockMeeting(meeting._id);
+  const room = getMeetingRoom(caseId);
+  io.to(room).emit("meeting:lock-changed", { isLocked: updated.isLocked });
+};
+
 // ─── Disconnect Handler ──────────────────────────────────────────────────────
 
 /**
@@ -365,6 +407,9 @@ const registerMeetingHandlers = (io, socket) => {
   socket.on("meeting:screen-share-started", handleScreenShareStarted(socket));
   socket.on("meeting:screen-share-stopped", handleScreenShareStopped(socket));
   socket.on("meeting:raise-hand", handleRaiseHand(socket));
+  socket.on("meeting:host-mute-all", handleHostMuteAll(io, socket));
+  socket.on("meeting:host-remove-user", handleHostRemoveUser(io, socket));
+  socket.on("meeting:lock-toggle", handleLockToggle(io, socket));
   socket.on("meeting:leave", handleMeetingLeave(io, socket));
 };
 

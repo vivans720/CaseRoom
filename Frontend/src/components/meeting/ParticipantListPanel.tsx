@@ -13,6 +13,10 @@ interface ParticipantListPanelProps {
   pinnedUserId: string | null;
   onTogglePin: (userId: string | null) => void;
   currentUserId: string;
+  isLocked?: boolean;
+  onToggleLock?: () => void;
+  onMuteAll?: () => void;
+  onRemoveParticipant?: (userId: string) => void;
 }
 
 export const ParticipantListPanel = ({
@@ -26,11 +30,16 @@ export const ParticipantListPanel = ({
   pinnedUserId,
   onTogglePin,
   currentUserId,
+  isLocked = false,
+  onToggleLock,
+  onMuteAll,
+  onRemoveParticipant,
 }: ParticipantListPanelProps): JSX.Element | null => {
   if (!isOpen) return null;
 
   const peerArray = Array.from(peers.values());
   const total = peerArray.length + 1;
+  const isHost = localRole === "Admin" || localRole === "Editor";
 
   return (
     <div className="absolute right-4 top-16 bottom-24 w-80 bg-slate-900/90 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl z-30 flex flex-col overflow-hidden text-white animate-in slide-in-from-right duration-200">
@@ -50,6 +59,35 @@ export const ParticipantListPanel = ({
           ✕
         </button>
       </div>
+
+      {/* Host Controls Action Bar */}
+      {isHost && (
+        <div className="p-2.5 border-b border-white/10 bg-white/5 flex items-center justify-between gap-2 text-xs">
+          {onMuteAll && (
+            <button
+              type="button"
+              onClick={onMuteAll}
+              className="px-2.5 py-1.5 rounded-lg bg-rose-500/20 text-rose-300 border border-rose-500/30 hover:bg-rose-500 hover:text-white transition-all font-semibold flex-1 text-center"
+            >
+              🔇 Mute All
+            </button>
+          )}
+
+          {onToggleLock && (
+            <button
+              type="button"
+              onClick={onToggleLock}
+              className={`px-2.5 py-1.5 rounded-lg border font-semibold flex-1 text-center transition-all ${
+                isLocked
+                  ? "bg-amber-500 text-white border-amber-400"
+                  : "bg-white/10 text-white border-white/10 hover:bg-white/20"
+              }`}
+            >
+              {isLocked ? "🔒 Locked" : "🔓 Lock Meeting"}
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Participant List */}
       <div className="flex-1 overflow-y-auto p-3 space-y-2">
@@ -136,6 +174,18 @@ export const ParticipantListPanel = ({
               >
                 📌
               </button>
+
+              {/* Kick button for hosts */}
+              {isHost && onRemoveParticipant && (
+                <button
+                  type="button"
+                  onClick={() => onRemoveParticipant(peer.userId)}
+                  title="Remove participant"
+                  className="text-xs p-1 rounded-full text-rose-400 hover:text-rose-300 hover:bg-rose-500/20 transition-colors"
+                >
+                  🚫
+                </button>
+              )}
             </div>
           </div>
         ))}

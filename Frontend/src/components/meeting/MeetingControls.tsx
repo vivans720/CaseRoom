@@ -7,10 +7,14 @@ interface MeetingControlsProps {
   userRole: CaseRole | null;
   isHandRaised?: boolean;
   isParticipantsOpen?: boolean;
+  layoutMode?: "grid" | "speaker";
+  isAudioOnly?: boolean;
   onToggleMic: () => void;
   onToggleCamera: () => void;
   onToggleRaiseHand?: () => void;
   onToggleParticipants?: () => void;
+  onToggleLayoutMode?: () => void;
+  onToggleAudioOnly?: () => void;
   onStartScreenShare: () => void;
   onStopScreenShare: () => void;
   onMinimize: () => void;
@@ -89,10 +93,14 @@ export const MeetingControls = ({
   userRole,
   isHandRaised,
   isParticipantsOpen,
+  layoutMode = "grid",
+  isAudioOnly = false,
   onToggleMic,
   onToggleCamera,
   onToggleRaiseHand,
   onToggleParticipants,
+  onToggleLayoutMode,
+  onToggleAudioOnly,
   onStartScreenShare,
   onStopScreenShare,
   onMinimize,
@@ -101,7 +109,7 @@ export const MeetingControls = ({
   const isObserver = userRole === "Observer";
 
   return (
-    <div className="meeting-controls">
+    <div className="meeting-controls flex items-center gap-2 bg-slate-950/80 backdrop-blur-xl px-5 py-3 rounded-full border border-white/10 shadow-2xl">
       {/* Mic Toggle */}
       <button
         type="button"
@@ -111,7 +119,7 @@ export const MeetingControls = ({
             ? "meeting-controls__btn--on"
             : "meeting-controls__btn--off"
         }`}
-        title={mediaState.audio ? "Mute microphone" : "Unmute microphone"}
+        title={mediaState.audio ? "Mute microphone (Ctrl+D)" : "Unmute microphone (Ctrl+D)"}
       >
         {mediaState.audio ? <MicIcon /> : <MicOffIcon />}
       </button>
@@ -132,8 +140,8 @@ export const MeetingControls = ({
           !videoAvailable
             ? "Camera unavailable"
             : mediaState.video
-              ? "Turn off camera"
-              : "Turn on camera"
+              ? "Turn off camera (Ctrl+E)"
+              : "Turn on camera (Ctrl+E)"
         }
       >
         {mediaState.video && videoAvailable ? <CameraIcon /> : <CameraOffIcon />}
@@ -152,6 +160,32 @@ export const MeetingControls = ({
           title={isHandRaised ? "Lower hand" : "Raise hand"}
         >
           ✋
+        </button>
+      )}
+
+      {/* Grid vs Speaker View Toggle */}
+      {onToggleLayoutMode && (
+        <button
+          type="button"
+          onClick={onToggleLayoutMode}
+          className="meeting-controls__btn meeting-controls__btn--on"
+          title={`Switch layout (Current: ${layoutMode === "grid" ? "Grid View" : "Speaker View"})`}
+        >
+          {layoutMode === "grid" ? "🖼️" : "👤"}
+        </button>
+      )}
+
+      {/* Audio-Only Mode Toggle */}
+      {onToggleAudioOnly && (
+        <button
+          type="button"
+          onClick={onToggleAudioOnly}
+          className={`meeting-controls__btn ${
+            isAudioOnly ? "bg-indigo-600 text-white" : "meeting-controls__btn--on"
+          }`}
+          title={isAudioOnly ? "Disable audio-only mode" : "Audio-only mode (saves data)"}
+        >
+          🎧
         </button>
       )}
 
