@@ -12,6 +12,20 @@ export interface ActiveMeetingResponse {
   }>;
 }
 
+export interface MeetingHistoryItem {
+  _id: string;
+  caseId: string;
+  startedBy: { _id: string; name: string; email: string; profilePictureUrl?: string };
+  startedAt: string;
+  endedAt?: string;
+  status: "active" | "ended";
+  participants: Array<{
+    user: { _id: string; name: string; email: string; profilePictureUrl?: string };
+    joinedAt: string;
+    leftAt?: string;
+  }>;
+}
+
 /**
  * Check if an active meeting exists for a case.
  * Returns meeting data or null if no active meeting.
@@ -28,5 +42,20 @@ export const getActiveMeeting = async (
       return null;
     }
     throw error;
+  }
+};
+
+/**
+ * Fetch meeting history for a case.
+ */
+export const getMeetingHistory = async (
+  caseId: string,
+): Promise<MeetingHistoryItem[]> => {
+  try {
+    const response = await api.get(`/cases/${caseId}/meetings/history`);
+    return response.data.data;
+  } catch (error: unknown) {
+    console.error("Failed to fetch meeting history:", error);
+    return [];
   }
 };

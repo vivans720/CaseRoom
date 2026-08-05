@@ -2,6 +2,7 @@ const Case = require("../models/Case");
 const Message = require("../models/Message");
 const meetingService = require("../services/meeting.service");
 const presenceService = require("../services/presence.service");
+const notificationService = require("../services/notification.service");
 
 const getMeetingRoom = (caseId) => `meeting_${caseId}`;
 const getCaseRoom = (caseId) => `case_${caseId}`;
@@ -96,8 +97,30 @@ const handleMeetingJoin =
           const caseRoomName = getCaseRoom(caseId);
           io.to(caseRoomName).emit("new_message", populatedMessage);
           console.log(`[Meeting] Broadcast meeting_started chat message to ${caseRoomName}`);
+
+          // Send in-app notification to other case participants
+          if (caseDoc.participants && caseDoc.participants.length > 0) {
+            for (const p of caseDoc.participants) {
+              const pUserId = (p.user?._id || p.user || p).toString();
+              if (pUserId !== socket.user._id.toString()) {
+                notificationService
+                  .createNotification(
+                    {
+                      recipientId: pUserId,
+                      actorId: socket.user._id,
+                      type: "meeting_started",
+                      title: "Video Meeting Started",
+                      message: `${socket.user.name} started a video meeting in case "${caseDoc.title}"`,
+                      caseId,
+                    },
+                    io,
+                  )
+                  .catch(console.error);
+              }
+            }
+          }
         } catch (msgErr) {
-          console.error("[Meeting] Failed to create meeting chat message:", msgErr);
+          console.error("[Meeting] Failed to create meeting chat message / notification:", msgErr);
         }
       }
 
@@ -311,6 +334,15 @@ const cleanupMeetingParticipant = async (io, socket, caseId) => {
   }
 };
 
+const handleRaiseHand = (socket) => ({ caseId, isHandRaised }) => {
+  if (!caseId) return;
+  const room = getMeetingRoom(caseId);
+  socket.to(room).emit("meeting:user-hand-raised", {
+    userId: socket.user._id.toString(),
+    isHandRaised,
+  });
+};
+
 // ─── Disconnect Handler ──────────────────────────────────────────────────────
 
 /**
@@ -332,6 +364,7 @@ const registerMeetingHandlers = (io, socket) => {
   socket.on("meeting:toggle-media", handleToggleMedia(socket));
   socket.on("meeting:screen-share-started", handleScreenShareStarted(socket));
   socket.on("meeting:screen-share-stopped", handleScreenShareStopped(socket));
+  socket.on("meeting:raise-hand", handleRaiseHand(socket));
   socket.on("meeting:leave", handleMeetingLeave(io, socket));
 };
 

@@ -251,6 +251,8 @@ export interface PeerMediaState {
   audio: boolean;
   video: boolean;
   screenShare: boolean;
+  isSpeaking?: boolean;
+  isHandRaised?: boolean;
 }
 
 export interface MeetingPeer {
@@ -259,4 +261,6 @@ export interface MeetingPeer {
   profilePictureUrl?: string | null;
   stream: MediaStream | null;
   mediaState: PeerMediaState;
+  isSpeaking?: boolean;
+  isHandRaised?: boolean;
 }

@@ -5,8 +5,12 @@ interface MeetingControlsProps {
   mediaState: PeerMediaState;
   videoAvailable: boolean;
   userRole: CaseRole | null;
+  isHandRaised?: boolean;
+  isParticipantsOpen?: boolean;
   onToggleMic: () => void;
   onToggleCamera: () => void;
+  onToggleRaiseHand?: () => void;
+  onToggleParticipants?: () => void;
   onStartScreenShare: () => void;
   onStopScreenShare: () => void;
   onMinimize: () => void;
@@ -70,12 +74,25 @@ const LeaveIcon = (): JSX.Element => (
   </svg>
 );
 
+const UsersIcon = (): JSX.Element => (
+  <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+    <circle cx="9" cy="7" r="4" />
+    <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+  </svg>
+);
+
 export const MeetingControls = ({
   mediaState,
   videoAvailable,
   userRole,
+  isHandRaised,
+  isParticipantsOpen,
   onToggleMic,
   onToggleCamera,
+  onToggleRaiseHand,
+  onToggleParticipants,
   onStartScreenShare,
   onStopScreenShare,
   onMinimize,
@@ -122,6 +139,22 @@ export const MeetingControls = ({
         {mediaState.video && videoAvailable ? <CameraIcon /> : <CameraOffIcon />}
       </button>
 
+      {/* Raise Hand Toggle */}
+      {onToggleRaiseHand && (
+        <button
+          type="button"
+          onClick={onToggleRaiseHand}
+          className={`meeting-controls__btn ${
+            isHandRaised
+              ? "bg-amber-500 text-white shadow-lg shadow-amber-500/30"
+              : "meeting-controls__btn--on"
+          }`}
+          title={isHandRaised ? "Lower hand" : "Raise hand"}
+        >
+          ✋
+        </button>
+      )}
+
       {/* Screen Share — hidden for Observers */}
       {!isObserver && (
         <button
@@ -139,6 +172,22 @@ export const MeetingControls = ({
           }
         >
           <ScreenShareIcon />
+        </button>
+      )}
+
+      {/* Participants Panel Toggle */}
+      {onToggleParticipants && (
+        <button
+          type="button"
+          onClick={onToggleParticipants}
+          className={`meeting-controls__btn ${
+            isParticipantsOpen
+              ? "bg-primary text-white"
+              : "meeting-controls__btn--on"
+          }`}
+          title="Toggle participant list"
+        >
+          <UsersIcon />
         </button>
       )}
 

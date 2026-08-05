@@ -97,6 +97,18 @@ const endMeeting = async (meetingId) => {
   );
 };
 
+/**
+ * Get meeting history for a case.
+ */
+const getMeetingHistory = async (caseId, limit = 20) => {
+  return Meeting.find({ caseId, status: "ended" })
+    .sort({ endedAt: -1 })
+    .limit(limit)
+    .populate("startedBy", "name email profilePictureUrl")
+    .populate("participants.user", "name email profilePictureUrl")
+    .lean();
+};
+
 module.exports = {
   findOrCreateMeeting,
   getActiveMeeting,
@@ -104,4 +116,5 @@ module.exports = {
   removeParticipant,
   getActiveParticipantCount,
   endMeeting,
+  getMeetingHistory,
 };

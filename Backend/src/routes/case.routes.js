@@ -18,6 +18,7 @@ router.post("/", caseController.createCase);
 router.get("/search", caseController.searchCases);
 router.get("/all", caseController.fetchAllCases);
 router.get("/:caseId/meeting/active", meetingController.getActiveMeeting);
+router.get("/:caseId/meetings/history", meetingController.getMeetingHistory);
 router.get("/:id", caseController.getCaseById);
 router.put("/:id/participants", caseController.updateParticipants);
 router.put("/:id/archive", caseController.archiveCase);

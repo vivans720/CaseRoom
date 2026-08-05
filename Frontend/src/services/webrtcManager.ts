@@ -159,17 +159,43 @@ export class WebRTCManager {
 
   /**
    * Replace video track on all peer connections (for screen share / camera swap).
-   * Uses replaceTrack() — no renegotiation needed.
+   * Uses replaceTrack() when sender exists, or adds track with renegotiation.
    */
   async replaceVideoTrack(newTrack: MediaStreamTrack): Promise<void> {
     const replacePromises: Promise<void>[] = [];
 
-    for (const [, connection] of this.peers) {
-      const sender = connection
+    newTrack.enabled = true;
+
+    for (const [userId, connection] of this.peers) {
+      // Find video sender
+      let sender = connection
         .getSenders()
-        .find((s) => s.track?.kind === "video");
+        .find((s) => s.track?.kind === "video" || s.track === null);
+
+      if (!sender) {
+        const videoTransceiver = connection
+          .getTransceivers()
+          .find((t) => t.receiver.track.kind === "video" || t.sender.track?.kind === "video");
+        if (videoTransceiver) {
+          sender = videoTransceiver.sender;
+        }
+      }
+
       if (sender) {
         replacePromises.push(sender.replaceTrack(newTrack));
+      } else {
+        // No sender exists, add track and trigger renegotiation offer
+        if (this.localStream) {
+          connection.addTrack(newTrack, this.localStream);
+        } else {
+          connection.addTrack(newTrack);
+        }
+        try {
+          const offer = await connection.createOffer();
+          await connection.setLocalDescription(offer);
+        } catch (e) {
+          console.warn(`[WebRTC] Failed to renegotiate track for ${userId}:`, e);
+        }
       }
     }
 

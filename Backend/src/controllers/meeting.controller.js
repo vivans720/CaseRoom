@@ -31,4 +31,18 @@ const getActiveMeeting = async (req, res, next) => {
   }
 };
 
-module.exports = { getActiveMeeting };
+const getMeetingHistory = async (req, res, next) => {
+  try {
+    const { caseId } = req.params;
+    const history = await meetingService.getMeetingHistory(caseId);
+
+    res.status(200).json({
+      success: true,
+      data: history,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = { getActiveMeeting, getMeetingHistory };

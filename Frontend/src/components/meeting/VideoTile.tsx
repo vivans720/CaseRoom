@@ -8,6 +8,10 @@ interface VideoTileProps {
   mediaState: PeerMediaState;
   isLocal?: boolean;
   isVideoAvailable?: boolean;
+  isSpeaking?: boolean;
+  isHandRaised?: boolean;
+  isPinned?: boolean;
+  onTogglePin?: () => void;
 }
 
 const MicOffIcon = (): JSX.Element => (
@@ -83,16 +87,28 @@ export const VideoTile = ({
   mediaState,
   isLocal = false,
   isVideoAvailable = true,
+  isSpeaking = false,
+  isHandRaised = false,
+  isPinned = false,
+  onTogglePin,
 }: VideoTileProps): JSX.Element => {
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
     if (videoRef.current && stream) {
-      videoRef.current.srcObject = stream;
+      if (videoRef.current.srcObject !== stream) {
+        videoRef.current.srcObject = stream;
+      }
+      videoRef.current.play().catch(() => {});
     }
-  }, [stream]);
+  }, [stream, mediaState.video, mediaState.screenShare]);
 
-  const showVideo = stream && mediaState.video && isVideoAvailable;
+  const showVideo = Boolean(
+    stream && (mediaState.screenShare || (mediaState.video && isVideoAvailable)),
+  );
+  const handRaised = isHandRaised || mediaState.isHandRaised;
+  const speaking = isSpeaking || mediaState.isSpeaking;
+
   const initials = name
     .split(" ")
     .map((n) => n[0])
@@ -101,7 +117,11 @@ export const VideoTile = ({
     .slice(0, 2);
 
   return (
-    <div className="meeting-tile">
+    <div
+      className={`meeting-tile relative ${
+        speaking ? "ring-4 ring-emerald-500 shadow-lg shadow-emerald-500/20" : ""
+      } ${isPinned ? "ring-2 ring-primary" : ""}`}
+    >
       {/* Video element */}
       <video
         ref={videoRef}
@@ -129,6 +149,29 @@ export const VideoTile = ({
             </div>
           )}
         </div>
+      )}
+
+      {/* Hand Raised badge */}
+      {handRaised && (
+        <div className="absolute top-3 left-3 bg-amber-500 text-white p-1 px-2 rounded-full text-xs font-bold shadow-md animate-bounce flex items-center gap-1 z-10">
+          <span>✋ Hand Raised</span>
+        </div>
+      )}
+
+      {/* Pin button */}
+      {onTogglePin && (
+        <button
+          type="button"
+          onClick={onTogglePin}
+          title={isPinned ? "Unpin tile" : "Pin tile"}
+          className={`absolute top-3 right-3 p-1.5 rounded-full backdrop-blur-md transition-all z-10 ${
+            isPinned
+              ? "bg-primary text-white shadow-md"
+              : "bg-black/40 text-white/70 hover:text-white opacity-0 group-hover:opacity-100"
+          }`}
+        >
+          📌
+        </button>
       )}
 
       {/* Bottom overlay */}

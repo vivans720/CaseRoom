@@ -43,14 +43,19 @@ interface MeetingContextValue {
   meetingCaseId: string | null;
   userRole: CaseRole | null;
   meetingError: string | null;
+  activeSpeakerId: string | null;
+  pinnedUserId: string | null;
+  isHandRaised: boolean;
 
   // Actions
   joinMeeting: (caseId: string) => Promise<void>;
   leaveMeeting: () => void;
   toggleCamera: () => void;
   toggleMic: () => void;
+  toggleRaiseHand: () => void;
   startScreenShare: () => Promise<void>;
   stopScreenShare: () => void;
+  setPinnedUserId: (userId: string | null) => void;
   setViewMode: (mode: MeetingViewMode) => void;
   minimize: () => void;
   expand: () => void;
@@ -124,6 +129,9 @@ export const MeetingProvider = ({
   const [meetingCaseId, setMeetingCaseId] = useState<string | null>(null);
   const [userRole, setUserRole] = useState<CaseRole | null>(null);
   const [meetingError, setMeetingError] = useState<string | null>(null);
+  const [activeSpeakerId, setActiveSpeakerId] = useState<string | null>(null);
+  const [pinnedUserId, setPinnedUserId] = useState<string | null>(null);
+  const [isHandRaised, setIsHandRaised] = useState(false);
 
   // Refs for stable access in callbacks
   const webrtcRef = useRef<WebRTCManager | null>(null);
@@ -169,6 +177,9 @@ export const MeetingProvider = ({
     setScreenStream(null);
     setMeetingCaseId(null);
     setUserRole(null);
+    setActiveSpeakerId(null);
+    setPinnedUserId(null);
+    setIsHandRaised(false);
     cameraTrackRef.current = null;
   }, [screenStream]);
 
@@ -293,6 +304,27 @@ export const MeetingProvider = ({
     }
   }, [mediaState, socket]);
 
+  const toggleRaiseHand = useCallback(() => {
+    if (!socket || !caseIdRef.current) return;
+    const newHandState = !isHandRaised;
+    setIsHandRaised(newHandState);
+
+    const newState: PeerMediaState = {
+      ...mediaState,
+      isHandRaised: newHandState,
+    };
+    setMediaState(newState);
+
+    socket.emit("meeting:raise-hand", {
+      caseId: caseIdRef.current,
+      isHandRaised: newHandState,
+    });
+    socket.emit("meeting:toggle-media", {
+      caseId: caseIdRef.current,
+      mediaState: newState,
+    });
+  }, [socket, isHandRaised, mediaState]);
+
   // ─── Screen Share ─────────────────────────────────────────────────────────
 
   const startScreenShare = useCallback(async () => {
@@ -313,6 +345,7 @@ export const MeetingProvider = ({
       setScreenStream(screen);
       const newState: PeerMediaState = {
         ...mediaState,
+        video: true,
         screenShare: true,
       };
       setMediaState(newState);
@@ -343,6 +376,7 @@ export const MeetingProvider = ({
     setScreenStream(null);
 
     // Revert to camera track
+    const isCameraEnabled = cameraTrackRef.current ? cameraTrackRef.current.enabled : false;
     if (cameraTrackRef.current) {
       webrtcRef.current
         .replaceVideoTrack(cameraTrackRef.current)
@@ -351,6 +385,7 @@ export const MeetingProvider = ({
 
     const newState: PeerMediaState = {
       ...mediaState,
+      video: isCameraEnabled,
       screenShare: false,
     };
     setMediaState(newState);
@@ -562,7 +597,7 @@ export const MeetingProvider = ({
         if (existing) {
           next.set(data.userId, {
             ...existing,
-            mediaState: { ...existing.mediaState, screenShare: true },
+            mediaState: { ...existing.mediaState, video: true, screenShare: true },
           });
         }
         return next;
@@ -577,6 +612,21 @@ export const MeetingProvider = ({
           next.set(data.userId, {
             ...existing,
             mediaState: { ...existing.mediaState, screenShare: false },
+          });
+        }
+        return next;
+      });
+    };
+
+    const onUserHandRaised = (data: { userId: string; isHandRaised: boolean }) => {
+      setPeers((prev) => {
+        const next = new Map(prev);
+        const existing = next.get(data.userId);
+        if (existing) {
+          next.set(data.userId, {
+            ...existing,
+            mediaState: { ...existing.mediaState, isHandRaised: data.isHandRaised },
+            isHandRaised: data.isHandRaised,
           });
         }
         return next;
@@ -598,6 +648,7 @@ export const MeetingProvider = ({
     socket.on("meeting:media-state", onMediaState);
     socket.on("meeting:screen-share-started", onScreenShareStarted);
     socket.on("meeting:screen-share-stopped", onScreenShareStopped);
+    socket.on("meeting:user-hand-raised", onUserHandRaised);
     socket.on("meeting:error", onError);
 
     return () => {
@@ -611,6 +662,7 @@ export const MeetingProvider = ({
       socket.off("meeting:media-state", onMediaState);
       socket.off("meeting:screen-share-started", onScreenShareStarted);
       socket.off("meeting:screen-share-stopped", onScreenShareStopped);
+      socket.off("meeting:user-hand-raised", onUserHandRaised);
       socket.off("meeting:error", onError);
     };
   }, [socket, cleanup]);
@@ -628,12 +680,17 @@ export const MeetingProvider = ({
     meetingCaseId,
     userRole,
     meetingError,
+    activeSpeakerId,
+    pinnedUserId,
+    isHandRaised,
     joinMeeting,
     leaveMeeting,
     toggleCamera,
     toggleMic,
+    toggleRaiseHand,
     startScreenShare,
     stopScreenShare,
+    setPinnedUserId,
     setViewMode,
     minimize,
     expand,
