@@ -47,7 +47,6 @@ export const ChatView = (): JSX.Element => {
     jumpToMessageId,
     setJumpToMessageId,
     onShowContactPreview,
-    setSidebarOpen,
   } = useDashboardPanel();
 
   const [activeReplyMessage, setActiveReplyMessage] = useState<Message | null>(
@@ -310,7 +309,6 @@ export const ChatView = (): JSX.Element => {
         onTogglePanel={togglePanel}
         onlineUserIds={onlineUserIds}
         onCaseLoaded={(data) => setIsArchived(data.status === "archived")}
-        onToggleSidebar={() => setSidebarOpen(true)}
       />
 
       <PinnedMessageBanner 

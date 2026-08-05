@@ -53,9 +53,9 @@ export const NotificationPanel = ({
     <div
       role="dialog"
       aria-label="Notifications"
-      className="fixed inset-x-4 top-16 md:absolute md:right-0 md:left-auto md:w-[320px] md:mt-2 w-auto rounded-xl border border-border bg-surface shadow-lg z-30 animate-in fade-in duration-150"
+      className="fixed inset-x-4 top-16 bottom-16 sm:bottom-auto md:absolute md:right-0 md:left-auto md:w-[320px] md:mt-2 w-auto rounded-xl border border-border bg-surface shadow-lg z-30 animate-in fade-in duration-150 flex flex-col"
     >
-      <div className="flex items-center justify-between border-b border-border px-4 py-3">
+      <div className="flex items-center justify-between border-b border-border px-4 py-2.5 shrink-0">
         <div>
           <p className="text-sm font-semibold text-text-primary">
             Notifications
@@ -74,7 +74,7 @@ export const NotificationPanel = ({
         </button>
       </div>
 
-      <div className="max-h-90 overflow-y-auto">
+      <div className="max-h-[calc(100dvh-10rem)] sm:max-h-90 overflow-y-auto flex-1">
         {error && notifications.length === 0 && (
           <div className="px-4 py-6 text-center">
             <p className="text-sm text-danger" role="alert">

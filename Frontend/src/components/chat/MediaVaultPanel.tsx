@@ -94,7 +94,7 @@ export const MediaVaultPanel = ({
     <aside
       id="media-vault-panel"
       data-testid="media-vault-panel"
-      className="w-full md:w-[300px] border-l border-slate-200/80 bg-white/90 backdrop-blur-xl flex flex-col h-full shrink-0 animate-in slide-in-from-right duration-200 z-20"
+      className="w-full md:w-[300px] border-l border-slate-200/80 bg-white/90 backdrop-blur-xl flex flex-col h-full shrink-0"
       aria-label="Files & Media Vault"
     >
       {/* Header */}

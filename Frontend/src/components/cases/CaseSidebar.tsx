@@ -193,11 +193,11 @@ export const CaseSidebar = ({ onClose }: { onClose?: () => void } = {}): JSX.Ele
   return (
     <>
       {/* Sidebar Container */}
-      <aside className="flex h-screen w-full shrink-0 flex-col border-r border-slate-200/80 bg-white/90 backdrop-blur-xl">
+      <aside className="flex h-full w-full flex-col bg-white">
         
         {/* Item 11 & 15: Polished Balanced Header with Top Quick-Create (+) Button */}
-        <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3.5">
-          <div className="flex items-center gap-2.5 transition-transform duration-300 hover:scale-[1.02] cursor-pointer">
+        <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3.5 md:px-4">
+          <div className="flex items-center gap-2.5 transition-transform duration-300 hover:scale-[1.02] cursor-pointer md:gap-2.5">
             {onClose && (
               <button
                 type="button"
@@ -216,7 +216,7 @@ export const CaseSidebar = ({ onClose }: { onClose?: () => void } = {}): JSX.Ele
             <span className="text-lg font-extrabold tracking-tight text-slate-900">CaseRoom</span>
           </div>
 
-          <div className="flex items-center gap-2 relative" ref={menuRef}>
+          <div className="flex items-center gap-2 relative md:gap-2" ref={menuRef}>
             
             {/* Top Quick Create (+) Button */}
             <button
@@ -303,7 +303,7 @@ export const CaseSidebar = ({ onClose }: { onClose?: () => void } = {}): JSX.Ele
         </div>
 
         {/* Item 4 & 5: Taller 44px Search input & Unified Filter Bar */}
-        <div className="border-b border-slate-100 px-3.5 py-3 flex flex-col gap-2.5">
+        <div className="border-b border-slate-100 px-3.5 py-3 flex flex-col gap-2.5 md:px-3.5">
           
           {/* Taller Search Bar (44px) */}
           <div className="flex items-center gap-2.5 h-[44px] rounded-xl border border-slate-200/90 bg-slate-50/70 px-3.5 focus-within:border-[#5B4CF3] focus-within:bg-white focus-within:ring-4 focus-within:ring-[#5B4CF3]/15 transition-all duration-200">
@@ -348,7 +348,7 @@ export const CaseSidebar = ({ onClose }: { onClose?: () => void } = {}): JSX.Ele
         </div>
 
         {/* Case list */}
-        <div className="flex-1 overflow-y-auto px-1.5 py-2">
+        <div className="flex-1 overflow-y-auto px-1.5 py-2 md:px-1.5">
           {isLoading && <CaseListSkeleton />}
 
           {!isLoading && error && (
@@ -431,7 +431,7 @@ export const CaseSidebar = ({ onClose }: { onClose?: () => void } = {}): JSX.Ele
         </div>
 
         {/* Item 10: 56px Tall Elevated "+ New Case" button */}
-        <div className="border-t border-slate-100 p-3.5 bg-white">
+        <div className="border-t border-slate-100 p-3.5 bg-white md:p-3.5">
           <button
             type="button"
             id="new-case-button"

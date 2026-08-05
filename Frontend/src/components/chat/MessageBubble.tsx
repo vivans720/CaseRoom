@@ -895,7 +895,7 @@ export const MessageBubble = ({
           </div>
         )}
 
-        <div className={`flex flex-col gap-0.5 max-w-[85%] sm:max-w-[480px] relative`}>
+        <div className={`flex flex-col gap-0.5 max-w-[80%] sm:max-w-[440px] relative`}>
           {!isOwn && showSender && (
             <span className="text-xs font-medium text-text-secondary ml-1">
               {senderName}

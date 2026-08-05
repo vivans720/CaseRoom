@@ -181,7 +181,7 @@ export const TaskPanel: React.FC<TaskPanelProps> = ({
   }, [tasks]);
 
   return (
-    <div className="flex flex-col h-full bg-white/90 backdrop-blur-xl border-l border-slate-200/80 text-slate-900 w-full md:w-[300px] shrink-0">
+    <div className="w-full md:w-[300px] flex flex-col h-full bg-white/90 backdrop-blur-xl border-l border-slate-200/80 text-slate-900 shrink-0">
       {/* Header */}
       <div className="p-4 border-b border-slate-100 space-y-3">
         <div className="flex items-center justify-between">

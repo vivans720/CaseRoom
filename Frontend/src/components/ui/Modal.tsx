@@ -73,7 +73,7 @@ export const Modal = ({
       <div
         ref={panelRef}
         tabIndex={-1}
-        className={`w-full ${SIZE_CLASSES[size]} rounded-[1.75rem] border border-white/90 bg-white/95 p-6 shadow-[0_25px_70px_-15px_rgba(91,76,243,0.18),0_10px_30px_rgba(0,0,0,0.06)] backdrop-blur-2xl outline-none max-h-[calc(100vh-2rem)] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200`}
+        className={`w-full ${SIZE_CLASSES[size]} rounded-[1.75rem] border border-white/90 bg-white/95 p-6 shadow-[0_25px_70px_-15px_rgba(91,76,243,0.18),0_10px_30px_rgba(0,0,0,0.06)] backdrop-blur-2xl outline-none max-h-[calc(100dvh-2rem)] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200`}
       >
         {title && (
           <div className="flex items-center justify-between mb-4 pb-2 border-b border-slate-100 shrink-0">

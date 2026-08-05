@@ -15,7 +15,7 @@ export const ProtectedRoute = ({
 
   if (isLoading) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-surface">
+      <main className="flex min-h-dvh items-center justify-center bg-surface">
         <Spinner size="lg" />
       </main>
     )

@@ -291,7 +291,7 @@ export const ParticipantsPanel = ({
   return (
     <aside
       id="participants-panel"
-      className="absolute inset-y-0 right-0 z-40 w-full md:relative md:w-[300px] bg-white/90 backdrop-blur-xl border-l border-slate-200/80 h-full flex flex-col shrink-0 overflow-hidden shadow-xl md:shadow-none"
+      className="w-full md:w-[300px] bg-white/90 backdrop-blur-xl border-l border-slate-200/80 h-full flex flex-col shrink-0 overflow-hidden shadow-xl md:shadow-none"
       aria-label="Participants panel"
     >
       {/* Header */}

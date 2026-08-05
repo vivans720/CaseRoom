@@ -45,7 +45,7 @@ export const MessageSearchBar = ({
   return (
     <aside
       id="message-search-panel"
-      className="absolute inset-y-0 right-0 z-40 w-full md:relative md:w-[300px] bg-white/90 backdrop-blur-xl border-l border-slate-200/80 flex flex-col shrink-0 h-full overflow-hidden shadow-xl md:shadow-none animate-in slide-in-from-right duration-200"
+      className="w-full md:w-[300px] bg-white/90 backdrop-blur-xl border-l border-slate-200/80 flex flex-col shrink-0 h-full overflow-hidden shadow-xl md:shadow-none"
       aria-label="Search panel"
     >
       {/* Header */}

@@ -148,7 +148,7 @@ export const DashboardPage = (): JSX.Element => {
   };
 
   return (
-    <div className="relative flex h-screen overflow-hidden bg-[#f6f5fa]">
+    <div className="relative flex h-dvh overflow-hidden bg-[#f6f5fa]">
       {/* Left: Case sidebar (Item 2: w-[400px] / lg:w-[420px]) */}
       <div
         className={`${
@@ -190,15 +190,24 @@ export const DashboardPage = (): JSX.Element => {
         </>
       )}
 
-      {/* Right: Active panel */}
+      {/* Mobile backdrop for right panels */}
       {hasCaseSelected &&
-        activePanel &&
-        renderRightPanel(
-          activePanel,
-          caseId!,
-          togglePanel,
-          handleJumpRequest,
-          setPreviewUser,
+        activePanel && (
+          <>
+            <div
+              className="fixed inset-0 z-30 bg-black/40 backdrop-blur-sm md:hidden animate-in fade-in duration-200"
+              onClick={() => togglePanel(null)}
+            />
+            <div className="absolute inset-y-0 right-0 z-40 w-full md:relative md:w-[300px] md:max-w-[300px] animate-in slide-in-from-right duration-200">
+              {renderRightPanel(
+                activePanel,
+                caseId!,
+                togglePanel,
+                handleJumpRequest,
+                setPreviewUser,
+              )}
+            </div>
+          </>
         )}
 
       <NotificationToast />

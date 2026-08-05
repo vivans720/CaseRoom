@@ -7,7 +7,7 @@ export const AppErrorFallback = ({
 }: FallbackProps): JSX.Element => (
   <div
     role="alert"
-    className="flex min-h-screen flex-col items-center justify-center gap-4 bg-surface-secondary px-4"
+    className="flex min-h-dvh flex-col items-center justify-center gap-4 bg-surface-secondary px-4"
   >
     <h1 className="text-lg font-semibold text-text-primary">
       Something went wrong

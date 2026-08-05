@@ -28,12 +28,13 @@ export const MeetingPiP = (): JSX.Element => {
   const [isDragging, setIsDragging] = useState(false);
   const dragOffset = useRef({ x: 0, y: 0 });
 
-  // Default position: bottom-right
+  // Default position: bottom-right, clamped to viewport
   useEffect(() => {
     if (position.x === -1 && position.y === -1) {
+      const pipWidth = Math.min(280, window.innerWidth - 16);
       setPosition({
-        x: window.innerWidth - 300,
-        y: window.innerHeight - 280,
+        x: Math.max(8, window.innerWidth - pipWidth - 12),
+        y: Math.max(8, window.innerHeight - 280),
       });
     }
   }, [position]);

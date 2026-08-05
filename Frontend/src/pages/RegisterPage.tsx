@@ -23,7 +23,7 @@ export const RegisterPage = (): JSX.Element => {
   }
 
   return (
-    <main className="relative flex min-h-screen w-full items-center justify-center overflow-hidden bg-[#f6f5fa] font-sans text-slate-900 p-4 sm:p-6 lg:p-8">
+    <main className="relative flex min-h-dvh w-full items-center justify-center overflow-hidden bg-[#f6f5fa] font-sans text-slate-900 p-4 sm:p-6 lg:p-8">
       {/* Background Aurora & Slow Moving Ambient Glows */}
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
         <div 

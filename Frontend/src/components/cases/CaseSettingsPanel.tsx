@@ -115,7 +115,7 @@ export const CaseSettingsPanel = ({
 
   if (isLoading) {
     return (
-      <aside className="absolute inset-y-0 right-0 z-40 flex h-full w-full md:relative md:w-[300px] shrink-0 items-center justify-center border-l border-slate-200/80 bg-white/90 p-6 shadow-xl md:shadow-none">
+      <aside className="flex h-full w-full md:w-[300px] shrink-0 items-center justify-center border-l border-slate-200/80 bg-white/90 p-6 shadow-xl md:shadow-none">
         <Spinner />
       </aside>
     );
@@ -123,7 +123,7 @@ export const CaseSettingsPanel = ({
 
   if (error || !caseData) {
     return (
-      <aside className="absolute inset-y-0 right-0 z-40 h-full w-full md:relative md:w-[300px] shrink-0 border-l border-slate-200/80 bg-white/90 p-6 shadow-xl md:shadow-none">
+      <aside className="h-full w-full md:w-[300px] shrink-0 border-l border-slate-200/80 bg-white/90 p-6 shadow-xl md:shadow-none">
         <p className="text-xs font-medium text-red-500">{error ?? "Case not found."}</p>
       </aside>
     );
@@ -137,7 +137,7 @@ export const CaseSettingsPanel = ({
   const isArchived = caseData.status === "archived";
 
   return (
-    <aside className="absolute inset-y-0 right-0 z-40 flex h-full w-full md:relative md:w-[300px] shrink-0 flex-col overflow-y-auto border-l border-slate-200/80 bg-white/90 backdrop-blur-xl shadow-xl md:shadow-none animate-in slide-in-from-right duration-200">
+    <aside className="flex h-full w-full md:w-[300px] shrink-0 flex-col overflow-y-auto border-l border-slate-200/80 bg-white/90 backdrop-blur-xl shadow-xl md:shadow-none">
       <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3.5 shrink-0">
         <div className="flex items-center gap-2">
           {onClose && (

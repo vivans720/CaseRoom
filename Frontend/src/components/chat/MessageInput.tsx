@@ -45,6 +45,7 @@ const MAX_ROWS = 5;
 const LINE_HEIGHT_PX = 24;
 const EMOJI_PICKER_MOBILE_WIDTH = "min(20rem, calc(100vw - 2rem))";
 const EMOJI_PICKER_HEIGHT = 380;
+const EMOJI_PICKER_HEIGHT_MOBILE = 280;
 const MAX_MENTION_SUGGESTIONS = 8;
 
 const EmojiPicker = lazy(() => import("emoji-picker-react"));
@@ -494,7 +495,7 @@ export const MessageInput = ({
               <EmojiPicker
                 onEmojiClick={handleEmojiClick}
                 width="100%"
-                height={EMOJI_PICKER_HEIGHT}
+                height={window.innerWidth < 640 ? EMOJI_PICKER_HEIGHT_MOBILE : EMOJI_PICKER_HEIGHT}
                 lazyLoadEmojis
                 previewConfig={{ showPreview: false }}
               />
@@ -530,14 +531,14 @@ export const MessageInput = ({
           disabled={isUploading}
           placeholder={
             selectedFile
-              ? "Add a caption... (optional)"
-              : "Type a message… (Enter to send, Shift+Enter for new line)"
+              ? "Add a caption..."
+              : "Type a message..."
           }
           rows={1}
           className="
             flex-1 resize-none overflow-y-auto
             bg-slate-50/70 border border-slate-200/90 rounded-2xl
-            px-4 py-3.5 text-sm text-[#111827] min-h-[56px]
+            px-3.5 py-2.5 sm:py-3.5 text-sm text-[#111827] min-h-[46px] sm:min-h-[56px]
             placeholder:text-[#94A3B8] placeholder:font-normal
             focus:outline-none focus:border-[#6C4CF1] focus:bg-white focus:ring-4 focus:ring-[#6C4CF1]/12
             transition-all duration-[180ms] ease-in-out disabled:opacity-60 disabled:bg-slate-100
