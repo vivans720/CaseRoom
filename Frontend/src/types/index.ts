@@ -15,7 +15,7 @@ export interface CaseParticipant {
   role: CaseRole;
 }
 
-export type MessageType = "text" | "image" | "video" | "audio" | "document";
+export type MessageType = "text" | "image" | "video" | "audio" | "document" | "meeting_started";
 
 export type TaskStatus = "todo" | "in_progress" | "done";
 export type TaskPriority = "low" | "medium" | "high" | "critical";
@@ -32,7 +32,9 @@ export type NotificationType =
   | "role_updated"
   | "task_assigned"
   | "task_completed"
-  | "task_status_updated";
+  | "task_status_updated"
+  | "meeting_started"
+  | "meeting_ended";
 
 export interface Task {
   _id: string;
@@ -224,4 +226,37 @@ export interface Annotation {
   updatedAt: string;
 }
 
+// ─── Meeting Types ────────────────────────────────────────────────────────────
 
+export type MeetingStatus = "active" | "ended";
+export type MeetingViewMode = "expanded" | "pip";
+
+export interface MeetingParticipant {
+  user: string | User;
+  joinedAt: string;
+  leftAt?: string;
+}
+
+export interface Meeting {
+  _id: string;
+  caseId: string;
+  startedBy: string | User;
+  startedAt: string;
+  endedAt?: string;
+  status: MeetingStatus;
+  participants: MeetingParticipant[];
+}
+
+export interface PeerMediaState {
+  audio: boolean;
+  video: boolean;
+  screenShare: boolean;
+}
+
+export interface MeetingPeer {
+  userId: string;
+  name: string;
+  profilePictureUrl?: string | null;
+  stream: MediaStream | null;
+  mediaState: PeerMediaState;
+}

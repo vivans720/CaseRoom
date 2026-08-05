@@ -14,7 +14,7 @@ const messageSchema = new mongoose.Schema(
     },
     type: {
       type: String,
-      enum: ["text", "image", "video", "audio", "document"],
+      enum: ["text", "image", "video", "audio", "document", "meeting_started"],
       default: "text",
     },
     content: {

@@ -25,6 +25,8 @@ const TYPE_LABELS: Record<NotificationType, string> = {
   task_assigned: "Task",
   task_completed: "Task Done",
   task_status_updated: "Task Status",
+  meeting_started: "Meeting Started",
+  meeting_ended: "Meeting Ended",
 };
 
 const formatRelativeTime = (timestamp: string): string => {

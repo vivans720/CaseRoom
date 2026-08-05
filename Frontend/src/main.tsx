@@ -6,6 +6,7 @@ import { ErrorBoundary } from "react-error-boundary";
 import { AuthProvider } from "./contexts/AuthContext";
 import { SocketProvider } from "./contexts/SocketContext";
 import { NotificationProvider } from "./contexts/NotificationContext";
+import { MeetingProvider } from "./contexts/MeetingContext";
 import { AppErrorFallback } from "./components/ui/AppErrorFallback";
 import App from "./App";
 import "./index.css";
@@ -16,9 +17,11 @@ createRoot(document.getElementById("root")!).render(
       <ErrorBoundary FallbackComponent={AppErrorFallback}>
         <AuthProvider>
           <SocketProvider>
-            <NotificationProvider>
-              <App />
-            </NotificationProvider>
+            <MeetingProvider>
+              <NotificationProvider>
+                <App />
+              </NotificationProvider>
+            </MeetingProvider>
           </SocketProvider>
         </AuthProvider>
       </ErrorBoundary>

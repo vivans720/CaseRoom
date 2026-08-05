@@ -15,6 +15,9 @@ import { PinnedMessageBanner } from "./PinnedMessageBanner";
 import { ConfirmDialog } from "../ui/ConfirmDialog";
 import { EmptyState } from "../ui/EmptyState";
 import { Modal } from "../ui/Modal";
+import { MeetingRoom } from "../meeting/MeetingRoom";
+import { MeetingPiP } from "../meeting/MeetingPiP";
+import { useMeeting } from "../../hooks/useMeeting";
 import type { Message } from "../../types";
 import { getCaseParticipants } from "../../services/caseService";
 import { pinMessage, unpinMessage } from "../../services/messageService";
@@ -37,6 +40,7 @@ export const ChatView = (): JSX.Element => {
   const { caseId } = useParams<{ caseId: string }>();
   const { socket } = useSocket();
   const { user } = useAuth();
+  const { isInMeeting, viewMode, meetingCaseId } = useMeeting();
   const {
     activePanel,
     togglePanel,
@@ -295,9 +299,11 @@ export const ChatView = (): JSX.Element => {
       </div>
     );
   }
+  const showMeetingOverlay = isInMeeting && meetingCaseId === caseId && viewMode === "expanded";
+  const showMeetingPiP = isInMeeting && viewMode === "pip";
 
   return (
-    <div className="flex h-full flex-col min-h-0 bg-[#FAFBFF]">
+    <div className="relative flex h-full flex-col min-h-0 bg-[#FAFBFF]">
       <ChatHeader
         caseId={caseId}
         activePanel={activePanel}
@@ -391,6 +397,12 @@ export const ChatView = (): JSX.Element => {
           </div>
         </div>
       </Modal>
+
+      {/* Meeting Overlay */}
+      {showMeetingOverlay && <MeetingRoom />}
+
+      {/* Meeting PiP */}
+      {showMeetingPiP && <MeetingPiP />}
     </div>
   );
 };

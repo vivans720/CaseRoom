@@ -8,8 +8,14 @@ import { MemoryRouter } from "react-router-dom"
 
 vi.mock("../../services/caseService")
 vi.mock("../../hooks/useSocket")
+vi.mock("../../hooks/useAuth", () => ({
+  useAuth: () => ({ user: { _id: "u1", name: "Alice" } }),
+}))
 vi.mock("../notifications/NotificationBell", () => ({
-  NotificationBell: () => <div data-testid="notification-bell" />
+  NotificationBell: () => <div data-testid="notification-bell" />,
+}))
+vi.mock("../meeting/JoinMeetingButton", () => ({
+  JoinMeetingButton: () => <div data-testid="join-meeting-btn" />,
 }))
 
 describe("ChatHeader", () => {

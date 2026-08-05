@@ -24,6 +24,8 @@ const notificationSchema = new mongoose.Schema(
         "task_assigned",
         "task_completed",
         "task_status_updated",
+        "meeting_started",
+        "meeting_ended",
       ],
     },
     title: {

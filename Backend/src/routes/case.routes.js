@@ -9,6 +9,7 @@ const messageController = require("../controllers/message.controller");
 const router = express.Router();
 
 const annotationController = require("../controllers/annotation.controller");
+const meetingController = require("../controllers/meeting.controller");
 
 // Apply auth middleware to all case routes
 router.use(protect);
@@ -16,6 +17,7 @@ router.use(protect);
 router.post("/", caseController.createCase);
 router.get("/search", caseController.searchCases);
 router.get("/all", caseController.fetchAllCases);
+router.get("/:caseId/meeting/active", meetingController.getActiveMeeting);
 router.get("/:id", caseController.getCaseById);
 router.put("/:id/participants", caseController.updateParticipants);
 router.put("/:id/archive", caseController.archiveCase);

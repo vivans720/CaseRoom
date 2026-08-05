@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type JSX, type ReactNode } from "react";
 import type { Message, User, Reaction } from "../../types";
 import { Avatar } from "../ui/Avatar";
 import { DocumentPreviewModal } from "./DocumentPreviewModal";
+import { useMeeting } from "../../hooks/useMeeting";
 
 interface MessageBubbleProps {
   message: Message;
@@ -331,6 +332,60 @@ const FileAttachment = ({
   );
 };
 
+const MeetingCard = ({
+  message,
+}: {
+  message: Message;
+}): JSX.Element => {
+  const { joinMeeting, isInMeeting, meetingCaseId } = useMeeting();
+  const caseIdStr =
+    typeof message.caseId === "object" ? message.caseId._id : message.caseId;
+  const senderName = getSenderName(message.senderId);
+  const isInThisMeeting = isInMeeting && meetingCaseId === caseIdStr;
+
+  return (
+    <div className="flex flex-col gap-2.5 p-3 rounded-xl bg-purple-500/10 border border-purple-500/20 my-1 min-w-[240px]">
+      <div className="flex items-center gap-2.5">
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-r from-[#5B4CF3] to-[#8B2EFF] text-white shadow-md">
+          <svg
+            className="h-5 w-5"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={2}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <polygon points="23 7 16 12 23 17 23 7" />
+            <rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
+          </svg>
+        </div>
+        <div className="flex flex-col min-w-0">
+          <span className="text-xs font-extrabold tracking-tight">Video Meeting</span>
+          <span className="text-[11px] opacity-75 truncate">{senderName} started a call</span>
+        </div>
+      </div>
+
+      <button
+        type="button"
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          void joinMeeting(caseIdStr);
+        }}
+        disabled={isInThisMeeting}
+        className={`flex items-center justify-center gap-2 rounded-xl py-2 px-3 text-xs font-bold transition-all shadow-xs ${
+          isInThisMeeting
+            ? "bg-emerald-500/20 text-emerald-600 border border-emerald-500/30 cursor-default"
+            : "bg-gradient-to-r from-[#5B4CF3] to-[#8B2EFF] text-white hover:opacity-90 active:scale-95"
+        }`}
+      >
+        {isInThisMeeting ? "● In Meeting" : "Join Meeting"}
+      </button>
+    </div>
+  );
+};
+
 const MessageContent = ({
   message,
   isOwn,
@@ -339,6 +394,9 @@ const MessageContent = ({
   isOwn: boolean;
 }): JSX.Element => {
   if (message.isDeleted) return <DeletedMessage />;
+  if (message.type === "meeting_started") {
+    return <MeetingCard message={message} />;
+  }
   if (message.type !== "text") {
     const caption = message.content?.trim();
     return (

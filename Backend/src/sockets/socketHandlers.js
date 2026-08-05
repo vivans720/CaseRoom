@@ -1,4 +1,5 @@
 const Case = require("../models/Case");
+const { registerMeetingHandlers, handleMeetingDisconnect } = require("./meetingHandlers");
 const User = require("../models/User");
 const {
   createMessage,
@@ -256,8 +257,12 @@ const handleTypingStop =
     });
   };
 
-const handleDisconnect = (socket) => async () => {
+const handleDisconnect = (io, socket) => async () => {
   console.log(`User Disconnected: ${socket.user._id}`);
+
+  // Clean up any active meeting participation
+  await handleMeetingDisconnect(io, socket);
+
   const isLastConnection = presenceService.removeUser(
     socket.user._id,
     socket.id,
@@ -452,7 +457,8 @@ const registerSocketHandlers = (io, socket) => {
   socket.on("annotation:create", handleAnnotationCreated(io, socket));
   socket.on("annotation:update", handleAnnotationUpdated(io, socket));
   socket.on("annotation:delete", handleAnnotationDeleted(io, socket));
-  socket.on("disconnect", handleDisconnect(socket));
+  registerMeetingHandlers(io, socket);
+  socket.on("disconnect", handleDisconnect(io, socket));
 };
 
 module.exports = registerSocketHandlers;

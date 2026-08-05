@@ -6,6 +6,9 @@ import { Spinner } from "../ui/Spinner";
 import { NotificationBell } from "../notifications/NotificationBell";
 import type { RightPanel } from "../../hooks/useDashboardPanel";
 import { useSocket } from "../../hooks/useSocket";
+import { useAuth } from "../../hooks/useAuth";
+import { JoinMeetingButton } from "../meeting/JoinMeetingButton";
+import type { CaseRole } from "../../types";
 
 interface ChatHeaderProps {
   caseId: string;
@@ -98,8 +101,10 @@ export const ChatHeader = ({
   const [caseData, setCaseData] = useState<Case | null>(null);
   const [participants, setParticipants] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [userRole, setUserRole] = useState<CaseRole | null>(null);
   const onCaseLoadedRef = useRef(onCaseLoaded);
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   useEffect(() => {
     onCaseLoadedRef.current = onCaseLoaded;
@@ -121,6 +126,11 @@ export const ChatHeader = ({
           setCaseData(fetchedCase);
           setParticipants(fetchedParticipants);
           onCaseLoadedRef.current?.(fetchedCase);
+          // Determine user role
+          if (user) {
+            const me = fetchedParticipants.find((p: User) => p._id === user._id);
+            setUserRole((me as unknown as { role?: CaseRole })?.role || null);
+          }
         }
       } catch {
         // Case may not exist
@@ -262,6 +272,9 @@ export const ChatHeader = ({
           </span>
           <span className="font-bold">{participants.length}</span>
         </button>
+
+        {/* Meeting Button */}
+        <JoinMeetingButton caseId={caseId} userRole={userRole} />
       </div>
 
       {/* Grouped Top Toolbar Icons */}
