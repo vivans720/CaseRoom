@@ -59,7 +59,7 @@ export const LoginPage = (): JSX.Element => {
         />
 
         {/* LEFT SECTION: Promotional */}
-        <div className="relative flex flex-col justify-between bg-gradient-to-br from-purple-50/70 via-white to-indigo-50/50 p-8 lg:p-10 border-b border-slate-100 lg:border-b-0 lg:after:absolute lg:after:right-0 lg:after:top-10 lg:after:bottom-10 lg:after:w-px lg:after:bg-gradient-to-b lg:after:from-transparent lg:after:via-slate-200/90 lg:after:to-transparent">
+        <div className="hidden lg:flex flex-col justify-between bg-gradient-to-br from-purple-50/70 via-white to-indigo-50/50 p-8 lg:p-10 border-b border-slate-100 lg:border-b-0 lg:after:absolute lg:after:right-0 lg:after:top-10 lg:after:bottom-10 lg:after:w-px lg:after:bg-gradient-to-b lg:after:from-transparent lg:after:via-slate-200/90 lg:after:to-transparent">
           
           {/* Logo Header */}
           <div className="flex items-center gap-1.5 transition-transform duration-300 hover:scale-[1.02] cursor-pointer">

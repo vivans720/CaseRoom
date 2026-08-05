@@ -351,7 +351,7 @@ export const RegisterForm = ({ onStepChange }: RegisterFormProps): JSX.Element =
           </div>
 
           {/* Email & Phone */}
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             <div className="flex flex-col gap-0.5">
               <label htmlFor="register-email" className="text-[14px] font-semibold text-[#1F2937]">
                 Email
