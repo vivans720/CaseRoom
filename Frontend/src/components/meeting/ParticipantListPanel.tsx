@@ -42,7 +42,7 @@ export const ParticipantListPanel = ({
   const isHost = localRole === "Admin" || localRole === "Editor";
 
   return (
-    <div className="absolute right-4 top-16 bottom-24 w-80 bg-slate-900/90 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl z-30 flex flex-col overflow-hidden text-white animate-in slide-in-from-right duration-200">
+    <div className="fixed sm:absolute inset-x-0 bottom-0 top-12 sm:top-16 sm:bottom-24 sm:right-4 sm:left-auto w-full sm:w-80 bg-slate-900/95 backdrop-blur-2xl border-t sm:border border-white/10 rounded-t-3xl sm:rounded-2xl shadow-2xl z-40 flex flex-col overflow-hidden text-white animate-in slide-in-from-bottom sm:slide-in-from-right duration-200">
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
         <div className="flex items-center gap-2">

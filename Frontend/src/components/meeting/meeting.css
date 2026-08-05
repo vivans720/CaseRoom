@@ -643,9 +643,37 @@
   }
 }
 
-/* ─── Responsive ───────────────────────────────────────────────────────────── */
+/* ─── Responsive Design & Device Adaptations ─────────────────────────── */
 
+/* Desktop & Ultra-wide (>= 1280px) */
+@media (min-width: 1280px) {
+  .meeting-grid {
+    max-width: 1400px;
+    gap: 12px;
+  }
+}
+
+/* Tablets & Laptops (769px - 1024px) */
+@media (max-width: 1024px) {
+  .meeting-room__grid-container {
+    padding: 12px;
+  }
+
+  .meeting-grid {
+    gap: 8px;
+  }
+}
+
+/* Mobile & Small Tablets (<= 768px) */
 @media (max-width: 768px) {
+  .meeting-room__grid-container {
+    padding: 8px;
+  }
+
+  .meeting-grid--1 {
+    max-width: 100%;
+  }
+
   .meeting-grid--2 {
     grid-template-columns: 1fr;
     grid-template-rows: 1fr 1fr;
@@ -653,6 +681,7 @@
 
   .meeting-grid--4 {
     grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
   }
 
   .meeting-grid--6 {
@@ -660,28 +689,97 @@
     grid-template-rows: 1fr 1fr 1fr;
   }
 
-  .meeting-controls {
+  .meeting-spotlight {
     gap: 8px;
-    padding: 12px;
+  }
+
+  .meeting-spotlight__strip {
+    height: 90px;
+  }
+
+  .meeting-spotlight__strip .meeting-tile {
+    width: 120px;
+  }
+
+  .meeting-controls {
+    gap: 6px;
+    padding: 10px 12px;
+    max-width: 95vw;
   }
 
   .meeting-controls__btn {
-    width: 42px;
-    height: 42px;
+    width: 40px;
+    height: 40px;
+    font-size: 14px;
   }
 
   .meeting-controls__btn--leave {
-    width: 48px;
+    width: 46px;
   }
 
   .meeting-pip {
-    width: 240px;
+    width: 220px;
+    bottom: 12px;
+    right: 12px;
   }
 
   .meeting-tile__avatar-initials,
   .meeting-tile__avatar-img {
-    width: 56px;
-    height: 56px;
-    font-size: 22px;
+    width: 52px;
+    height: 52px;
+    font-size: 20px;
+  }
+
+  .meeting-tile__name {
+    font-size: 11px;
+  }
+}
+
+/* Small Mobile Phones (<= 480px) */
+@media (max-width: 480px) {
+  .meeting-room__grid-container {
+    padding: 4px;
+    padding-bottom: 70px;
+  }
+
+  .meeting-tile {
+    border-radius: 12px;
+    border-width: 1.5px;
+  }
+
+  .meeting-grid--4,
+  .meeting-grid--6 {
+    grid-template-columns: 1fr;
+    auto-rows: minmax(140px, 1fr);
+    overflow-y: auto;
+  }
+
+  .meeting-controls {
+    gap: 4px;
+    padding: 8px 10px;
+  }
+
+  .meeting-controls__btn {
+    width: 36px;
+    height: 36px;
+    font-size: 13px;
+  }
+
+  .meeting-controls__btn--leave {
+    width: 42px;
+  }
+
+  .meeting-tile__avatar-initials,
+  .meeting-tile__avatar-img {
+    width: 44px;
+    height: 44px;
+    font-size: 18px;
+  }
+
+  .meeting-tile__local-badge {
+    padding: 1px 5px;
+    font-size: 9px;
+    top: 4px;
+    left: 4px;
   }
 }
