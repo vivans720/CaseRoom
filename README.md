@@ -84,6 +84,36 @@
 
 ---
 
+## 🕹️ How to Use CaseRoom
+
+### 🔑 Step 1: Login & Employee Authentication
+
+CaseRoom is built specifically for corporate security and internal organizational compliance.
+
+1. **Enter a Valid Employee ID**:
+   - When registering or logging in, enter an Employee ID in the format **`EMP011` through `EMP099`** (e.g., `EMP011`, `EMP024`, `EMP085`).
+2. **Why Employee ID Whitelisting?**:
+   - Only pre-seeded employee records (`EMP001` - `EMP100`) in the database can register or access the application.
+   - This was implemented to simulate a restricted corporate employee directory, ensuring that external public users cannot create arbitrary accounts without administrative authorization.
+3. **OTP Email Verification**:
+   - **Registration**: Enter an authorized Employee ID (`EMP011`–`EMP099`), your corporate email, name, and password. An OTP code will be sent to your email to verify ownership.
+   - **Login**: Enter your Employee ID and password, followed by 2-factor OTP verification for secure login.
+
+---
+
+### 🚀 Step 2: Exploring the Dashboard & Features
+
+Once logged in, the rest of the application is designed to be intuitive and self-explanatory:
+
+- **Cases & Channels**: Create investigation cases, set priority levels (`Low`, `Medium`, `High`, `Critical`), and assign team members with roles (`Admin`, `Editor`, `Observer`).
+- **Real-Time Messaging**: Send text, code snippets, media attachments, and documents. Use `@` mentions to notify colleagues, reply in threads, or react with emojis.
+- **WebRTC Video Calls**: Click **Join Meeting** inside any case room to launch a multi-party P2P video meeting with active speaker detection, host controls, and floating Picture-in-Picture (PiP).
+- **Document & PDF Canvas Annotations**: Click on any image or PDF attachment to launch the interactive canvas. Draw, highlight, or place arrows live with real-time socket sync across all participants.
+- **Task Management**: Open the Tasks panel to assign action items, set due dates, and mark items completed.
+- **Export Case History**: Download comprehensive PDF reports of case proceedings for legal and compliance audit trails.
+
+---
+
 ## 📁 Repository Structure
 
 ```
