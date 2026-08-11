@@ -10,6 +10,8 @@ import { CaseListSkeleton } from "../ui/Skeleton";
 import { useAuth } from "../../hooks/useAuth";
 import { ProfileModal } from "../profile/ProfileModal";
 import { ChangePasswordModal } from "../profile/ChangePasswordModal";
+import { Sparkles } from "lucide-react";
+import aiService from "../../services/aiService";
 import type { Case } from "../../types";
 
 const SearchIcon = (): JSX.Element => (
@@ -136,6 +138,9 @@ export const CaseSidebar = ({ onClose }: { onClose?: () => void } = {}): JSX.Ele
   } = useCases();
 
   const [searchQuery, setSearchQuery] = useState("");
+  const [useAISearch, setUseAISearch] = useState(false);
+  const [aiResults, setAiResults] = useState<Array<Case & { relevanceScore?: number }>>([]);
+  const [isAISearching, setIsAISearching] = useState(false);
   const [priorityFilter, setPriorityFilter] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -144,6 +149,29 @@ export const CaseSidebar = ({ onClose }: { onClose?: () => void } = {}): JSX.Ele
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
 
   const menuRef = useRef<HTMLDivElement>(null);
+
+  // AI Semantic search debounced effect
+  useEffect(() => {
+    if (!useAISearch || !searchQuery.trim()) {
+      setAiResults([]);
+      setIsAISearching(false);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      setIsAISearching(true);
+      try {
+        const results = await aiService.searchCases(searchQuery.trim());
+        setAiResults(results);
+      } catch (err) {
+        console.error("AI Search error:", err);
+      } finally {
+        setIsAISearching(false);
+      }
+    }, 400);
+
+    return () => clearTimeout(timer);
+  }, [useAISearch, searchQuery]);
 
   // Close menu when clicking outside
   useEffect(() => {
@@ -197,11 +225,18 @@ export const CaseSidebar = ({ onClose }: { onClose?: () => void } = {}): JSX.Ele
         
         {/* Item 11 & 15: Polished Balanced Header with Top Quick-Create (+) Button */}
         <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3.5 md:px-4">
-          <div className="flex items-center gap-2.5 transition-transform duration-300 hover:scale-[1.02] cursor-pointer md:gap-2.5">
+          <div
+            onClick={() => navigate("/")}
+            title="Return to Dashboard"
+            className="flex items-center gap-2.5 transition-transform duration-300 hover:scale-[1.02] cursor-pointer md:gap-2.5"
+          >
             {onClose && (
               <button
                 type="button"
-                onClick={onClose}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onClose();
+                }}
                 className="md:hidden mr-1 p-1 rounded-lg text-slate-500 hover:bg-slate-100"
                 aria-label="Close sidebar"
               >
@@ -306,16 +341,29 @@ export const CaseSidebar = ({ onClose }: { onClose?: () => void } = {}): JSX.Ele
         <div className="border-b border-slate-100 px-3.5 py-3 flex flex-col gap-2.5 md:px-3.5">
           
           {/* Taller Search Bar (44px) */}
-          <div className="flex items-center gap-2.5 h-[44px] rounded-xl border border-slate-200/90 bg-slate-50/70 px-3.5 focus-within:border-[#5B4CF3] focus-within:bg-white focus-within:ring-4 focus-within:ring-[#5B4CF3]/15 transition-all duration-200">
+          <div className="flex items-center gap-2 h-[44px] rounded-xl border border-slate-200/90 bg-slate-50/70 px-3 focus-within:border-[#5B4CF3] focus-within:bg-white focus-within:ring-4 focus-within:ring-[#5B4CF3]/15 transition-all duration-200">
             <SearchIcon />
             <input
               type="search"
               value={searchQuery}
               onChange={handleSearchChange}
-              placeholder="Search active cases…"
-              className="flex-1 bg-transparent text-xs text-slate-900 outline-none placeholder:text-slate-500 placeholder:font-medium font-normal"
+              placeholder={useAISearch ? "AI Search (semantic intent)…" : "Search active cases…"}
+              className="flex-1 min-w-0 bg-transparent text-xs text-slate-900 outline-none placeholder:text-slate-500 placeholder:font-medium font-normal"
               aria-label="Filter cases"
             />
+            <button
+              type="button"
+              onClick={() => setUseAISearch(!useAISearch)}
+              title={useAISearch ? "Switch to standard search" : "Switch to AI semantic search"}
+              className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-extrabold transition-all shrink-0 ${
+                useAISearch
+                  ? "bg-gradient-to-r from-[#5B4CF3] to-[#8B2EFF] text-white shadow-xs"
+                  : "bg-slate-200/70 text-slate-600 hover:bg-slate-300/80"
+              }`}
+            >
+              <Sparkles className="w-3 h-3" />
+              <span>AI</span>
+            </button>
           </div>
 
           {/* Unified Filter Bar Wrapper */}
@@ -364,7 +412,38 @@ export const CaseSidebar = ({ onClose }: { onClose?: () => void } = {}): JSX.Ele
             </div>
           )}
 
-          {!isLoading && !error && totalCases === 0 && (
+          {!isLoading && !error && useAISearch && searchQuery.trim() && (
+            <div>
+              <p className="px-3 pb-1.5 pt-1 text-xs font-black tracking-wider text-[#5B4CF3] flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-[#5B4CF3]" /> AI SEARCH RESULTS
+              </p>
+              {isAISearching ? (
+                <div className="px-4 py-8 text-center text-xs text-slate-400 font-medium animate-pulse">
+                  Searching semantically across cases…
+                </div>
+              ) : aiResults.length === 0 ? (
+                <div className="px-4 py-6 text-center text-xs text-slate-400 font-medium">
+                  No semantically matching cases found.
+                </div>
+              ) : (
+                aiResults.map((c) => (
+                  <CaseListItem
+                    key={c._id}
+                    caseData={c}
+                    unreadCount={unreadCounts[c._id] ?? 0}
+                    onPin={() =>
+                      pinCase(c._id).catch((e) => alert(e.message))
+                    }
+                    onUnpin={() =>
+                      unpinCase(c._id).catch((e) => alert(e.message))
+                    }
+                  />
+                ))
+              )}
+            </div>
+          )}
+
+          {!isLoading && !error && (!useAISearch || !searchQuery.trim()) && totalCases === 0 && (
             <EmptyState
               title="No cases yet"
               description="Create an IT case to start collaborating with your team."
@@ -372,13 +451,13 @@ export const CaseSidebar = ({ onClose }: { onClose?: () => void } = {}): JSX.Ele
             />
           )}
 
-          {!isLoading && !error && hasNoResults && (
+          {!isLoading && !error && (!useAISearch || !searchQuery.trim()) && hasNoResults && (
             <div className="px-4 py-6 text-center text-xs text-slate-400 font-medium">
               No cases match &ldquo;{searchQuery}&rdquo;
             </div>
           )}
 
-          {!isLoading && !error && !hasNoResults && (
+          {!isLoading && !error && (!useAISearch || !searchQuery.trim()) && !hasNoResults && (
             <>
               {/* Item 9: Pinned section with Pin emoji/icon */}
               {filteredPinned.length > 0 && (

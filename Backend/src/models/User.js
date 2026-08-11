@@ -21,7 +21,7 @@ const userSchema = new mongoose.Schema(
       lowercase: true,
       trim: true,
       match: [
-        /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/,
+        /^[\w\+\.-]+@[\w\.-]+\.\w{2,}$/,
         "Please fill a valid email address",
       ],
     },
@@ -52,6 +52,17 @@ const userSchema = new mongoose.Schema(
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Case",
+      },
+    ],
+    roleName: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    skills: [
+      {
+        type: String,
+        trim: true,
       },
     ],
   },

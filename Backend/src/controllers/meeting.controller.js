@@ -45,4 +45,11 @@ const getMeetingHistory = async (req, res, next) => {
   }
 };
 
-module.exports = { getActiveMeeting, getMeetingHistory };
+const updateTranscript = async (req, res, next) => {
+  try {
+    const meeting = await meetingService.updateTranscript(req.params.caseId, req.params.meetingId, req.user._id, req.body.transcript);
+    res.json({ success: true, data: meeting });
+  } catch (error) { next(error); }
+};
+
+module.exports = { getActiveMeeting, getMeetingHistory, updateTranscript };

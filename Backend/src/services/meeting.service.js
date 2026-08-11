@@ -1,4 +1,5 @@
 const Meeting = require("../models/Meeting");
+const { enqueue } = require("./ai/indexing.service");
 
 /**
  * Atomically find or create an active meeting for a case.
@@ -16,7 +17,7 @@ const findOrCreateMeeting = async (caseId, userId) => {
         participants: [],
       },
     },
-    { upsert: true, new: true },
+    { upsert: true, returnDocument: "after" },
   );
   return meeting;
 };
@@ -93,7 +94,7 @@ const endMeeting = async (meetingId) => {
       status: "ended",
       endedAt: new Date(),
     },
-    { new: true },
+    { returnDocument: "after" },
   );
 };
 
@@ -120,6 +121,19 @@ const getMeetingHistory = async (caseId, limit = 20) => {
     .lean();
 };
 
+const updateTranscript = async (caseId, meetingId, userId, transcript) => {
+  const Case = require("../models/Case");
+  const caseDoc = await Case.findById(caseId);
+  if (!caseDoc) throw Object.assign(new Error("Case not found"), { statusCode: 404 });
+  if (!caseDoc.isParticipant(userId)) throw Object.assign(new Error("Access denied. You are not a participant in this case"), { statusCode: 403 });
+  const meeting = await Meeting.findOne({ _id: meetingId, caseId });
+  if (!meeting) throw Object.assign(new Error("Meeting not found"), { statusCode: 404 });
+  meeting.transcript = String(transcript || "").trim();
+  await meeting.save();
+  enqueue({ caseId, sourceType: "meeting", sourceId: meeting._id }).catch((error) => console.warn("[AI indexing] Could not queue meeting:", error.message));
+  return meeting;
+};
+
 module.exports = {
   findOrCreateMeeting,
   getActiveMeeting,
@@ -129,4 +143,5 @@ module.exports = {
   endMeeting,
   toggleLockMeeting,
   getMeetingHistory,
+  updateTranscript,
 };

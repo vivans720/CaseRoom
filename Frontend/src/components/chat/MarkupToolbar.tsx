@@ -16,6 +16,7 @@ import {
   Trash2,
   X,
   MessageSquare,
+  Sparkles,
 } from "lucide-react";
 import type { AnnotationTool } from "../../types";
 
@@ -41,6 +42,8 @@ interface MarkupToolbarProps {
   onClose: () => void;
   showNotesSidebar: boolean;
   onToggleNotesSidebar: () => void;
+  showAiSidebar?: boolean;
+  onToggleAiSidebar?: () => void;
   annotationCount: number;
   isPdf: boolean;
 }
@@ -82,6 +85,8 @@ export const MarkupToolbar: FC<MarkupToolbarProps> = ({
   onClose,
   showNotesSidebar,
   onToggleNotesSidebar,
+  showAiSidebar = false,
+  onToggleAiSidebar,
   annotationCount,
   isPdf,
 }) => {
@@ -272,6 +277,19 @@ export const MarkupToolbar: FC<MarkupToolbarProps> = ({
 
       {/* Actions & Sidebar Toggle */}
       <div className="flex items-center space-x-2 ml-auto">
+        <button
+          type="button"
+          onClick={onToggleAiSidebar}
+          className={`flex items-center space-x-1.5 px-3 py-1 rounded-lg text-xs font-semibold shadow-sm transition-all ${
+            showAiSidebar
+              ? "bg-gradient-to-r from-indigo-500 to-purple-600 text-white ring-2 ring-indigo-400"
+              : "bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white"
+          }`}
+        >
+          <Sparkles className="w-3.5 h-3.5" />
+          <span>Ask AI</span>
+        </button>
+
         <button
           type="button"
           onClick={onToggleNotesSidebar}

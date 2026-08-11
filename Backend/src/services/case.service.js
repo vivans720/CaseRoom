@@ -9,6 +9,8 @@ const throwError = (message, statusCode) => {
   throw error;
 };
 
+const { embedCase } = require("./ai/embedding.service");
+
 // Create a new case
 const createCase = async (caseData, creatorId) => {
   const participants = [{ user: creatorId, role: "Admin" }];
@@ -20,6 +22,12 @@ const createCase = async (caseData, creatorId) => {
   });
 
   await newCase.save();
+
+  // Async generate vector embedding for ChromaDB (non-blocking)
+  embedCase(newCase).catch((err) =>
+    console.error("[ChromaDB] Auto-embedding failed for new case:", err.message)
+  );
+
   return newCase;
 };
 
@@ -27,8 +35,8 @@ const createCase = async (caseData, creatorId) => {
 
 const getCaseById = async (caseId, userId) => {
   const caseDoc = await Case.findById(caseId)
-    .populate("creatorId", "name email lastSeen employeeId profilePictureUrl")
-    .populate("participants.user", "name email lastSeen employeeId profilePictureUrl");
+    .populate("creatorId", "name email lastSeen employeeId profilePictureUrl roleName skills")
+    .populate("participants.user", "name email lastSeen employeeId profilePictureUrl roleName skills");
 
   if (!caseDoc) {
     throwError("Case not found", 404);

@@ -50,6 +50,11 @@ const meetingSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    transcript: {
+      type: String,
+      trim: true,
+      default: "",
+    },
     participants: [meetingParticipantSchema],
   },
   {

@@ -1,5 +1,7 @@
 import { useState, useEffect, type JSX } from "react";
+import { Sparkles } from "lucide-react";
 import { searchCases } from "../../services/caseService";
+import aiService from "../../services/aiService";
 import { Spinner } from "../ui/Spinner";
 import { EmptyState } from "../ui/EmptyState";
 import { CaseListItem } from "./CaseListItem";
@@ -8,6 +10,7 @@ import type { Case, CasePriority, CaseCategory, CaseStatus } from "../../types";
 
 export const CaseSearchPanel = (): JSX.Element => {
   const [query, setQuery] = useState("");
+  const [useAISearch, setUseAISearch] = useState(false);
   const [status, setStatus] = useState<CaseStatus | "">("");
   const [priority, setPriority] = useState<CasePriority | "">("");
   const [category, setCategory] = useState<CaseCategory | "">("");
@@ -50,14 +53,19 @@ export const CaseSearchPanel = (): JSX.Element => {
       setIsLoading(true);
       setError(null);
       try {
-        const data = await searchCases({
-          q: query || undefined,
-          status: status || undefined,
-          priority: priority || undefined,
-          category: category || undefined,
-          sortBy,
-        });
-        setResults(data);
+        if (useAISearch && query.trim()) {
+          const aiResults = await aiService.searchCases(query.trim());
+          setResults(aiResults);
+        } else {
+          const data = await searchCases({
+            q: query || undefined,
+            status: status || undefined,
+            priority: priority || undefined,
+            category: category || undefined,
+            sortBy,
+          });
+          setResults(data);
+        }
       } catch {
         setError("Failed to search cases.");
       } finally {
@@ -66,14 +74,29 @@ export const CaseSearchPanel = (): JSX.Element => {
     }, 400);
 
     return () => clearTimeout(timerId);
-  }, [query, status, priority, category, sortBy]);
+  }, [query, useAISearch, status, priority, category, sortBy]);
 
   return (
     <aside className="w-[320px] bg-white border-l border-border flex flex-col shrink-0 h-full overflow-hidden">
       <div className="p-4 border-b border-border">
-        <h3 className="text-sm font-semibold text-text-primary mb-3">
-          Global Case Search
-        </h3>
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-sm font-semibold text-text-primary">
+            Global Case Search
+          </h3>
+          <button
+            type="button"
+            onClick={() => setUseAISearch(!useAISearch)}
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold transition-all ${
+              useAISearch
+                ? "bg-[#5B4CF3] text-white shadow-xs"
+                : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200"
+            }`}
+            title="Semantic Search (matches intent & context)"
+          >
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>AI Search</span>
+          </button>
+        </div>
 
         <div className="flex flex-col gap-3">
           <div className="relative">

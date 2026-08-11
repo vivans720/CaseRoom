@@ -4,6 +4,8 @@ import { Modal } from "../ui/Modal";
 import { Avatar } from "../ui/Avatar";
 import { Spinner } from "../ui/Spinner";
 import { ImageCropperModal } from "./ImageCropperModal";
+import * as userService from "../../services/userService";
+import { AlertCircle, Sparkles, Tag, Briefcase } from "lucide-react";
 import {
   PROFILE_PICTURE_ALLOWED_TYPES,
   PROFILE_PICTURE_MAX_SIZE_BYTES,
@@ -33,11 +35,21 @@ export const ProfileModal = ({
   const [isUpdatingPhone, setIsUpdatingPhone] = useState(false);
   const [phoneError, setPhoneError] = useState<string | null>(null);
 
+  const [isEditingRole, setIsEditingRole] = useState(false);
+  const [roleInput, setRoleInput] = useState(user?.roleName ?? "");
+  const [isUpdatingRole, setIsUpdatingRole] = useState(false);
+
+  const [isEditingSkills, setIsEditingSkills] = useState(false);
+  const [skillsInput, setSkillsInput] = useState((user?.skills || []).join(", "));
+  const [isUpdatingSkills, setIsUpdatingSkills] = useState(false);
+
   useEffect(() => {
-    if (user?.phone) {
-      setPhoneInput(user.phone);
+    if (user) {
+      setPhoneInput(user.phone || "");
+      setRoleInput(user.roleName || "");
+      setSkillsInput((user.skills || []).join(", "));
     }
-  }, [user?.phone]);
+  }, [user]);
 
   useEffect(() => {
     if (!selectedFile) {
@@ -151,8 +163,44 @@ export const ProfileModal = ({
     }
   };
 
+  const handleSaveRole = async () => {
+    try {
+      setIsUpdatingRole(true);
+      setError(null);
+      setSuccess(null);
+      await userService.updateProfile({ roleName: roleInput.trim() });
+      setSuccess("Role title updated successfully");
+      setIsEditingRole(false);
+    } catch (err) {
+      setError("Failed to update role title");
+    } finally {
+      setIsUpdatingRole(false);
+    }
+  };
+
+  const handleSaveSkills = async () => {
+    try {
+      setIsUpdatingSkills(true);
+      setError(null);
+      setSuccess(null);
+      const skillsArray = skillsInput
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean);
+      await userService.updateProfile({ skills: skillsArray });
+      setSuccess("Skills updated successfully");
+      setIsEditingSkills(false);
+    } catch (err) {
+      setError("Failed to update skills");
+    } finally {
+      setIsUpdatingSkills(false);
+    }
+  };
+
   const handleClose = () => {
     resetSelection();
+    setIsEditingRole(false);
+    setIsEditingSkills(false);
     onClose();
   };
 
@@ -214,7 +262,139 @@ export const ProfileModal = ({
             <p className="text-xs font-semibold text-slate-500">{user.employeeId}</p>
           </div>
 
+          {(!user.roleName || !user.skills || user.skills.length === 0) && (
+            <div className="w-full p-3 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-200 text-xs flex items-start gap-2.5">
+              <AlertCircle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+              <div className="space-y-0.5">
+                <p className="font-bold flex items-center gap-1">
+                  Complete Your Profile
+                  <Sparkles className="w-3 h-3 text-[#5B4CF3]" />
+                </p>
+                <p className="text-[11px] text-amber-700 dark:text-amber-300">
+                  Please update your Role Title and Skills below so admins can invite you to relevant case investigations!
+                </p>
+              </div>
+            </div>
+          )}
+
           <div className="w-full space-y-2.5 pt-1">
+            {/* Role Title Field */}
+            <div className="rounded-2xl bg-slate-50/80 border border-slate-200/80 p-3">
+              <div className="flex items-center justify-between">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1">
+                  <Briefcase className="w-3 h-3" /> Role Title
+                </p>
+                {!isEditingRole && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setRoleInput(user.roleName || "");
+                      setIsEditingRole(true);
+                    }}
+                    className="text-[11px] font-bold text-[#5B4CF3] hover:underline focus:outline-none"
+                  >
+                    Edit
+                  </button>
+                )}
+              </div>
+              {isEditingRole ? (
+                <div className="mt-1 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={roleInput}
+                      onChange={(e) => setRoleInput(e.target.value)}
+                      placeholder="e.g. Security Analyst, Backend Dev"
+                      className="w-full rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-900 focus:border-[#5B4CF3] focus:outline-none focus:ring-2 focus:ring-[#5B4CF3]/20"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleSaveRole}
+                      disabled={isUpdatingRole}
+                      className="rounded-xl bg-[#5B4CF3] px-3 py-1.5 text-xs font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50 flex items-center justify-center min-w-[50px]"
+                    >
+                      {isUpdatingRole ? <Spinner size="sm" /> : "Save"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setIsEditingRole(false)}
+                      disabled={isUpdatingRole}
+                      className="rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 disabled:opacity-50"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-xs font-bold text-slate-900 mt-0.5">
+                  {user.roleName || <span className="text-amber-600 font-semibold italic">Not specified (Click Edit)</span>}
+                </p>
+              )}
+            </div>
+
+            {/* Technical Skills Field */}
+            <div className="rounded-2xl bg-slate-50/80 border border-slate-200/80 p-3">
+              <div className="flex items-center justify-between">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1">
+                  <Tag className="w-3 h-3" /> Technical Skills
+                </p>
+                {!isEditingSkills && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSkillsInput((user.skills || []).join(", "));
+                      setIsEditingSkills(true);
+                    }}
+                    className="text-[11px] font-bold text-[#5B4CF3] hover:underline focus:outline-none"
+                  >
+                    Edit
+                  </button>
+                )}
+              </div>
+              {isEditingSkills ? (
+                <div className="mt-1 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={skillsInput}
+                      onChange={(e) => setSkillsInput(e.target.value)}
+                      placeholder="e.g. Database, Auth, React, Legal"
+                      className="w-full rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-900 focus:border-[#5B4CF3] focus:outline-none focus:ring-2 focus:ring-[#5B4CF3]/20"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleSaveSkills}
+                      disabled={isUpdatingSkills}
+                      className="rounded-xl bg-[#5B4CF3] px-3 py-1.5 text-xs font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50 flex items-center justify-center min-w-[50px]"
+                    >
+                      {isUpdatingSkills ? <Spinner size="sm" /> : "Save"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setIsEditingSkills(false)}
+                      disabled={isUpdatingSkills}
+                      className="rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 disabled:opacity-50"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                  <p className="text-[10px] text-slate-400">Separate multiple skills with commas</p>
+                </div>
+              ) : (
+                <div className="mt-1 flex flex-wrap gap-1">
+                  {user.skills && user.skills.length > 0 ? (
+                    user.skills.map((skill, idx) => (
+                      <span key={idx} className="px-2 py-0.5 rounded-full bg-[#5B4CF3]/10 text-[#5B4CF3] text-[10px] font-bold">
+                        {skill}
+                      </span>
+                    ))
+                  ) : (
+                    <span className="text-xs text-amber-600 font-semibold italic">No skills added (Click Edit)</span>
+                  )}
+                </div>
+              )}
+            </div>
+
             <div className="rounded-2xl bg-slate-50/80 border border-slate-200/80 p-3">
               <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Email</p>
               <p className="text-xs font-bold text-slate-900 mt-0.5">{user.email}</p>

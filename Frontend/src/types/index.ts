@@ -75,6 +75,8 @@ export interface User {
   name: string;
   email: string;
   phone: string;
+  roleName?: string;
+  skills?: string[];
   profilePictureUrl?: string | null;
   lastSeen: string | null;
   pinnedCases: string[];

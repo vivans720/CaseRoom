@@ -5,6 +5,8 @@ import {
   Trash2,
   User as UserIcon,
   AlertCircle,
+  X,
+  Sparkles,
 } from "lucide-react";
 import { MarkupToolbar } from "./MarkupToolbar";
 import { PdfDocument } from "./PdfDocument";
@@ -14,6 +16,7 @@ import { useContext } from "react";
 import { AuthContext } from "../../contexts/AuthContext";
 import { SocketContext } from "../../contexts/SocketContext";
 import type { Annotation, AnnotationTool } from "../../types";
+import { DocumentQAPanel } from "./DocumentQAPanel";
 
 interface DocumentPreviewModalProps {
   isOpen: boolean;
@@ -59,6 +62,7 @@ export const DocumentPreviewModal: FC<DocumentPreviewModalProps> = ({
   const [editStrokeWidth, setEditStrokeWidth] = useState(4);
   const [isSavingEdit, setIsSavingEdit] = useState(false);
   const [showNotesSidebar, setShowNotesSidebar] = useState(false);
+  const [showAiSidebar, setShowAiSidebar] = useState(false);
   const documentViewportRef = useRef<HTMLDivElement | null>(null);
 
   const { pdfDocument, numPages, isLoading: isPdfLoading, error: pdfError } =
@@ -286,6 +290,8 @@ export const DocumentPreviewModal: FC<DocumentPreviewModalProps> = ({
         onClose={onClose}
         showNotesSidebar={showNotesSidebar}
         onToggleNotesSidebar={() => setShowNotesSidebar((prev) => !prev)}
+        showAiSidebar={showAiSidebar}
+        onToggleAiSidebar={() => setShowAiSidebar((prev) => !prev)}
         annotationCount={annotations.length}
         isPdf={isPdf}
       />
@@ -353,6 +359,28 @@ export const DocumentPreviewModal: FC<DocumentPreviewModalProps> = ({
             </>
           )}
         </div>
+
+        {/* Dedicated Ask AI Sidebar Drawer */}
+        {showAiSidebar && (
+          <div className="w-80 border-l border-slate-800 bg-slate-900 flex flex-col h-full z-40 text-slate-100 animate-in slide-in-from-right-5 duration-200">
+            <div className="p-3 border-b border-slate-800 flex items-center justify-between bg-slate-950">
+              <div className="flex items-center space-x-2">
+                <Sparkles className="w-4 h-4 text-indigo-400" />
+                <h3 className="font-semibold text-sm text-white">Ask AI Assistant</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowAiSidebar(false)}
+                className="text-slate-400 hover:text-white p-1 rounded-md hover:bg-slate-800"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="flex-1 overflow-hidden">
+              <DocumentQAPanel caseId={caseId} messageId={messageId} onClose={() => setShowAiSidebar(false)} />
+            </div>
+          </div>
+        )}
 
         {/* Collapsible Notes & Markup Sidebar */}
         {showNotesSidebar && (
@@ -429,7 +457,7 @@ export const DocumentPreviewModal: FC<DocumentPreviewModalProps> = ({
 
             <div className="flex-1 overflow-y-auto p-3 space-y-2.5">
               {annotations.length === 0 ? (
-                <div className="text-center py-12 text-slate-500 text-xs">
+                <div className="text-center py-6 text-slate-500 text-xs">
                   No annotations added yet. Pick a tool from the toolbar to mark up document.
                 </div>
               ) : (

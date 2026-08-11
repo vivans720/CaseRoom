@@ -8,13 +8,15 @@ interface SearchUsersResponse {
   data: User[]
 }
 
+export interface UpdateProfileDto {
+  name?: string
+  phone?: string
+  roleName?: string
+  skills?: string[] | string
+}
+
 /**
- * Search users by name or employeeId.
- *
- * @param query       - Search term (must be at least 1 character)
- * @param excludeIds  - User IDs to exclude from results (e.g. already in the case)
- * @returns           Array of matching User objects
- * @throws            If query is shorter than SEARCH_MIN_LENGTH
+ * Search users by name, employeeId, roleName, or skills.
  */
 export const searchUsers = async (
   query: string,
@@ -38,5 +40,21 @@ export const searchUsers = async (
     params,
   })
 
+  return response.data.data
+}
+
+/**
+ * Fetch current user profile
+ */
+export const getProfile = async (): Promise<User> => {
+  const response = await api.get<{ success: boolean; data: User }>("/users/profile")
+  return response.data.data
+}
+
+/**
+ * Update user profile (name, phone, roleName, skills)
+ */
+export const updateProfile = async (dto: UpdateProfileDto): Promise<User> => {
+  const response = await api.put<{ success: boolean; data: User }>("/users/profile", dto)
   return response.data.data
 }

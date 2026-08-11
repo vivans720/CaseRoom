@@ -4,6 +4,14 @@ const Message = require("../models/Message");
 const Case = require("../models/Case");
 const { getMimeCategory } = require("../config/upload");
 const cloudinary = require("../config/cloudinary");
+const { enqueue } = require("./ai/indexing.service");
+
+const queueIndex = (message, action = "upsert") => {
+  const sourceType = message.type === "document" ? "document" : "message";
+  enqueue({ caseId: message.caseId, sourceType, sourceId: message._id, action }).catch((error) =>
+    console.warn("[AI indexing] Could not queue message:", error.message),
+  );
+};
 
 const extractPublicId = (url) => {
   if (!url) return null;
@@ -186,6 +194,8 @@ const createMessage = async ({
   });
   await message.save();
 
+  queueIndex(message);
+
   const populatedMessage = await populateMessage(Message.findById(message._id));
 
   return populatedMessage;
@@ -223,6 +233,8 @@ const createFileMessage = async ({
   });
 
   await message.save();
+
+  queueIndex(message);
 
   const populatedMessage = await populateMessage(Message.findById(message._id));
 
@@ -277,6 +289,8 @@ const editMessage = async (messageId, userId, newContent) => {
   message.editedAt = new Date();
 
   await message.save();
+
+  queueIndex(message);
 
   return populateMessage(Message.findById(message._id));
 };
@@ -393,6 +407,7 @@ const deleteMessage = async (messageId, userId) => {
     throw error;
   }
 
+  queueIndex(message, "delete");
   message.isDeleted = true;
   message.deletedAt = new Date();
   message.content = "";
@@ -769,4 +784,3 @@ module.exports = {
   unpinMessage,
   getPinnedMessages,
 };
-

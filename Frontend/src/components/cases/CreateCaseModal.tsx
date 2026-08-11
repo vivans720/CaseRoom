@@ -1,8 +1,10 @@
 import { useState, useRef, useEffect } from "react"
 import type { JSX, FormEvent } from "react"
+import { AlertTriangle, Sparkles } from "lucide-react"
 import { Modal } from "../ui/Modal"
 import { Spinner } from "../ui/Spinner"
 import * as caseService from "../../services/caseService"
+import aiService, { type DuplicateCheckResult } from "../../services/aiService"
 import type { Case, CasePriority, CaseCategory } from "../../types"
 
 const TITLE_MAX_LENGTH = 100
@@ -33,6 +35,7 @@ export const CreateCaseModal = ({
   const [titleError, setTitleError] = useState<string | null>(null)
   const [serverError, setServerError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [duplicateWarning, setDuplicateWarning] = useState<DuplicateCheckResult | null>(null)
 
   const titleInputRef = useRef<HTMLInputElement>(null)
 
@@ -45,9 +48,33 @@ export const CreateCaseModal = ({
       setTitleError(null)
       setServerError(null)
       setIsSubmitting(false)
+      setDuplicateWarning(null)
       setTimeout(() => titleInputRef.current?.focus(), 0)
     }
   }, [isOpen])
+
+  // Debounced duplicate check
+  useEffect(() => {
+    if (!title.trim() || title.trim().length < 8) {
+      setDuplicateWarning(null)
+      return
+    }
+
+    const timer = setTimeout(async () => {
+      try {
+        const result = await aiService.checkDuplicate(title, description)
+        if (result.matchedCases && result.matchedCases.length > 0) {
+          setDuplicateWarning(result)
+        } else {
+          setDuplicateWarning(null)
+        }
+      } catch (err) {
+        console.error("Duplicate check failed:", err)
+      }
+    }, 600)
+
+    return () => clearTimeout(timer)
+  }, [title, description])
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault()
@@ -200,6 +227,44 @@ export const CreateCaseModal = ({
             </select>
           </div>
         </div>
+
+        {/* Multi-Candidate Duplicate Warning */}
+        {duplicateWarning?.matchedCases && duplicateWarning.matchedCases.length > 0 && (
+          <div className="p-3.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-200 text-xs space-y-2.5 animate-in fade-in duration-200">
+            <div className="flex items-center justify-between">
+              <p className="font-bold flex items-center gap-1.5 text-amber-900 dark:text-amber-100">
+                <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
+                {duplicateWarning.isDuplicate ? "Likely Duplicate Case Detected" : "Similar Existing Cases Found"}
+                <Sparkles className="w-3.5 h-3.5 text-[#5B4CF3]" />
+              </p>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-200/60 dark:bg-amber-900/60 text-amber-900 dark:text-amber-100">
+                Top match: {duplicateWarning.similarityPercentage}%
+              </span>
+            </div>
+
+            <div className="space-y-2">
+              {duplicateWarning.matchedCases.map((cand, idx) => (
+                <div key={idx} className="p-2.5 rounded-lg bg-white/80 dark:bg-slate-900/80 border border-amber-200/60 dark:border-amber-800/60 space-y-1">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-slate-900 dark:text-slate-100">
+                      "{cand.case.title}"
+                    </span>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                      cand.similarityPercentage >= 85 ? "bg-red-500/10 text-red-600 border border-red-500/20" : "bg-blue-500/10 text-blue-600 border border-blue-500/20"
+                    }`}>
+                      {cand.similarityPercentage}% Match
+                    </span>
+                  </div>
+                  {cand.matchReason && (
+                    <p className="text-[11px] text-slate-600 dark:text-slate-300 italic">
+                      Rationale: {cand.matchReason}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Server error */}
         {serverError && (

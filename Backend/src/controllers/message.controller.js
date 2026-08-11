@@ -38,12 +38,7 @@ const getCaseMessages = async (req, res, next) => {
       throw error;
     }
 
-    const isParticipant = existingCase.participants.some(
-      (p) => p.toString() === userId.toString(),
-    );
-    const isCreator = existingCase.creatorId.toString() === userId.toString();
-
-    if (!isParticipant && !isCreator) {
+    if (!existingCase.isParticipant(userId)) {
       const error = new Error(
         "Forbidden: You are not a participant of this case",
       );
@@ -88,12 +83,7 @@ const uploadFileMessage = async (req, res, next) => {
       throw error;
     }
 
-    // 3. Validate participant access
-    const isParticipant = existingCase.participants.some(
-      (p) => p.toString() === userId.toString(),
-    );
-    const isCreator = existingCase.creatorId.toString() === userId.toString();
-    if (!isParticipant && !isCreator) {
+    if (!existingCase.isParticipant(userId)) {
       const error = new Error(
         "Forbidden: You are not a participant of this case",
       );
@@ -178,12 +168,7 @@ const searchMessages = async (req, res, next) => {
       throw error;
     }
 
-    const isParticipant = existingCase.participants.some(
-      (p) => p.toString() === userId.toString(),
-    );
-    const isCreator = existingCase.creatorId.toString() === userId.toString();
-
-    if (!isParticipant && !isCreator) {
+    if (!existingCase.isParticipant(userId)) {
       const error = new Error(
         "Forbidden: You are not a participant of this case",
       );
@@ -221,12 +206,7 @@ const getUnreadCount = async (req, res, next) => {
       throw error;
     }
 
-    const isParticipant = existingCase.participants.some(
-      (p) => p.toString() === userId.toString(),
-    );
-    const isCreator = existingCase.creatorId.toString() === userId.toString();
-
-    if (!isParticipant && !isCreator) {
+    if (!existingCase.isParticipant(userId)) {
       const error = new Error(
         "Forbidden: You are not a participant of this case",
       );
@@ -386,12 +366,7 @@ const getCaseVault = async (req, res, next) => {
       throw error;
     }
 
-    const isParticipant = existingCase.participants.some(
-      (p) => p.toString() === userId.toString(),
-    );
-    const isCreator = existingCase.creatorId.toString() === userId.toString();
-
-    if (!isParticipant && !isCreator) {
+    if (!existingCase.isParticipant(userId)) {
       const error = new Error(
         "Forbidden: You are not a participant of this case",
       );

@@ -19,6 +19,7 @@ router.get("/search", caseController.searchCases);
 router.get("/all", caseController.fetchAllCases);
 router.get("/:caseId/meeting/active", meetingController.getActiveMeeting);
 router.get("/:caseId/meetings/history", meetingController.getMeetingHistory);
+router.put("/:caseId/meetings/:meetingId/transcript", meetingController.updateTranscript);
 router.get("/:id", caseController.getCaseById);
 router.put("/:id/participants", caseController.updateParticipants);
 router.put("/:id/archive", caseController.archiveCase);

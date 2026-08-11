@@ -108,8 +108,11 @@ const registerUser = async (userData) => {
 };
 
 const loginUser = async (employeeId, password) => {
-  //check user
-  const user = await User.findOne({ employeeId });
+  const cleanId = employeeId ? employeeId.trim() : "";
+  // check user (case-insensitive employeeId)
+  const user = await User.findOne({
+    employeeId: { $regex: new RegExp(`^${cleanId}$`, "i") },
+  });
 
   if (!user) {
     const error = new Error("Invalid Employee ID or Password");

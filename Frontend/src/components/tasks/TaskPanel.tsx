@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from "react";
-import { Plus, CheckSquare, Search, Loader2, X } from "lucide-react";
+import { Plus, CheckSquare, Search, Loader2, X, Sparkles } from "lucide-react";
 import type { Task, TaskStatus, User, CreateTaskDto } from "../../types";
 import { getCaseTasks, createTask, updateTask, deleteTask } from "../../services/taskService";
 import { getCaseParticipants } from "../../services/caseService";
@@ -7,6 +7,7 @@ import { useAuth } from "../../hooks/useAuth";
 import { useSocket } from "../../hooks/useSocket";
 import { TaskItem } from "./TaskItem";
 import { CreateTaskModal } from "./CreateTaskModal";
+import { AITaskExtractorModal } from "./AITaskExtractorModal";
 
 interface TaskPanelProps {
   caseId: string;
@@ -36,6 +37,7 @@ export const TaskPanel: React.FC<TaskPanelProps> = ({
   const [filter, setFilter] = useState<"all" | "assigned" | "todo" | "done">("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [isAIExtractOpen, setIsAIExtractOpen] = useState(false);
 
   const fetchData = async () => {
     try {
@@ -195,6 +197,14 @@ export const TaskPanel: React.FC<TaskPanelProps> = ({
 
           <div className="flex items-center gap-1.5">
             <button
+              onClick={() => setIsAIExtractOpen(true)}
+              className="flex items-center gap-1 px-2.5 py-1.5 bg-purple-50 hover:bg-purple-100 text-[#5B4CF3] text-xs font-bold rounded-xl border border-purple-200/60 transition-all duration-200 focus:outline-none"
+              title="Extract action items from chat using AI"
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">AI Extract</span>
+            </button>
+            <button
               onClick={() => setIsCreateOpen(true)}
               className="flex items-center gap-1 px-3 py-1.5 bg-gradient-to-r from-[#5B4CF3] to-[#8B2EFF] text-white text-xs font-bold rounded-xl shadow-xs hover:scale-105 active:scale-95 transition-all duration-200 focus:outline-none"
             >
@@ -300,6 +310,14 @@ export const TaskPanel: React.FC<TaskPanelProps> = ({
         onClose={() => setIsCreateOpen(false)}
         onCreate={handleCreateTask}
         participants={participants}
+      />
+
+      {/* AI Task Extractor Modal */}
+      <AITaskExtractorModal
+        caseId={caseId}
+        isOpen={isAIExtractOpen}
+        onClose={() => setIsAIExtractOpen(false)}
+        onTasksCreated={fetchData}
       />
     </div>
   );

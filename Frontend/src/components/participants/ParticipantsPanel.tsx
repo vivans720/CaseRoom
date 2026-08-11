@@ -126,10 +126,15 @@ const ParticipantRow = ({
             )}
           </div>
           
-          <div className="flex items-center gap-1.5 mt-0.5">
+          <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
             <span className="text-[10px] font-semibold text-slate-500 truncate">
               {participant.employeeId}
             </span>
+            {participant.roleName && (
+              <span className="text-[9px] font-bold px-1.5 py-0.2 rounded-full bg-slate-100 text-slate-700 border border-slate-200/60 shrink-0">
+                {participant.roleName}
+              </span>
+            )}
             {getRoleBadge(role)}
             {isCreator && (
               <span className="text-[9px] font-bold px-1.5 py-0.2 rounded-full bg-amber-50 text-amber-600 border border-amber-200/60 shrink-0">
@@ -137,6 +142,16 @@ const ParticipantRow = ({
               </span>
             )}
           </div>
+
+          {participant.skills && participant.skills.length > 0 && (
+            <div className="flex flex-wrap gap-1 mt-1">
+              {participant.skills.map((skill, idx) => (
+                <span key={idx} className="px-1.5 py-0.2 rounded-md bg-[#5B4CF3]/10 text-[#5B4CF3] text-[9px] font-semibold">
+                  {skill}
+                </span>
+              ))}
+            </div>
+          )}
 
           {isOnline ? (
             <p className="text-[10px] text-emerald-600 font-bold flex items-center gap-1 mt-1">

@@ -24,6 +24,7 @@ export interface MeetingHistoryItem {
     joinedAt: string;
     leftAt?: string;
   }>;
+  transcript?: string;
 }
 
 /**
@@ -43,6 +44,11 @@ export const getActiveMeeting = async (
     }
     throw error;
   }
+};
+
+export const updateMeetingTranscript = async (caseId: string, meetingId: string, transcript: string): Promise<MeetingHistoryItem> => {
+  const response = await api.put(`/cases/${caseId}/meetings/${meetingId}/transcript`, { transcript });
+  return response.data.data;
 };
 
 /**

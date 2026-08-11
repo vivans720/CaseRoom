@@ -9,6 +9,9 @@ import { MessageSearchBar } from "../components/chat/MessageSearchBar";
 import { MediaVaultPanel } from "../components/chat/MediaVaultPanel";
 import { ContactPreviewModal } from "../components/profile/ContactPreviewModal";
 import { TaskPanel } from "../components/tasks/TaskPanel";
+import { AIAssistantPanel } from "../components/chat/AIAssistantPanel";
+import { SimilarCasesPanel } from "../components/cases/SimilarCasesPanel";
+import { AIInsightPanel } from "../components/chat/AIInsightPanel";
 import { usePresence } from "../hooks/usePresence";
 import type { User } from "../types";
 import type {
@@ -20,9 +23,10 @@ import type {
 
 interface NoCaseSelectedProps {
   onOpenCreateCase?: () => void;
+  onOpenKnowledge?: () => void;
 }
 
-const NoCaseSelected = ({ onOpenCreateCase }: NoCaseSelectedProps): JSX.Element => (
+const NoCaseSelected = ({ onOpenCreateCase, onOpenKnowledge }: NoCaseSelectedProps): JSX.Element => (
   <div className="relative flex h-full flex-1 items-center justify-center bg-[#f6f5fa] overflow-hidden p-6">
     {/* Background Aurora & Ambient Glows */}
     <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
@@ -49,6 +53,7 @@ const NoCaseSelected = ({ onOpenCreateCase }: NoCaseSelectedProps): JSX.Element 
           }
         }}
       />
+      <button type="button" onClick={onOpenKnowledge} className="mx-auto mt-4 block rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white">Ask organization knowledge</button>
     </div>
   </div>
 );
@@ -112,6 +117,18 @@ const renderRightPanel = (
     );
   }
 
+  if (panel === "assistant") {
+    return <AIAssistantPanel caseId={caseId} onClose={() => onToggle("assistant")} onJumpToMessage={onJump} />;
+  }
+
+  if (panel === "similar") {
+    return <SimilarCasesPanel caseId={caseId} onClose={() => onToggle("similar")} />;
+  }
+
+  if (panel === "insights") {
+    return <AIInsightPanel caseId={caseId} onClose={() => onToggle("insights")} />;
+  }
+
   const _exhaustive: never = panel;
   throw new Error(`Unhandled right panel: ${String(_exhaustive)}`);
 };
@@ -126,6 +143,7 @@ export const DashboardPage = (): JSX.Element => {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
   const [jumpToMessageId, setJumpToMessageId] = useState<string | null>(null);
   const [previewUser, setPreviewUser] = useState<User | null>(null);
+  const [showKnowledge, setShowKnowledge] = useState(false);
 
   const { onlineUserIds, lastSeenUpdates } = usePresence(caseId);
 
@@ -173,6 +191,7 @@ export const DashboardPage = (): JSX.Element => {
               const btn = document.getElementById("new-case-button")
               btn?.click()
             }}
+            onOpenKnowledge={() => setShowKnowledge(true)}
           />
         )}
       </main>
@@ -211,6 +230,12 @@ export const DashboardPage = (): JSX.Element => {
         )}
 
       <NotificationToast />
+
+      {showKnowledge && (
+        <div className="fixed inset-y-0 right-0 z-50 w-full border-l border-slate-200 shadow-2xl md:w-[380px]">
+          <AIAssistantPanel onClose={() => setShowKnowledge(false)} />
+        </div>
+      )}
 
       <ContactPreviewModal
         isOpen={!!previewUser}
