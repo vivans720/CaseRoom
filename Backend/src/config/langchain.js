@@ -39,12 +39,19 @@ async function getNamedVectorStore(collectionName) {
     throw new Error("CHROMA_API_KEY environment variable is required for Chroma Cloud");
   }
 
-  const client = new CloudClient({
+  const clientOptions = {
     apiKey,
-    tenant: process.env.CHROMA_TENANT,
-    database: process.env.CHROMA_DATABASE,
     host: process.env.CHROMA_HOST || "api.trychroma.com",
-  });
+  };
+
+  if (process.env.CHROMA_TENANT && process.env.CHROMA_TENANT.trim() !== "") {
+    clientOptions.tenant = process.env.CHROMA_TENANT.trim();
+  }
+  if (process.env.CHROMA_DATABASE && process.env.CHROMA_DATABASE.trim() !== "") {
+    clientOptions.database = process.env.CHROMA_DATABASE.trim();
+  }
+
+  const client = new CloudClient(clientOptions);
 
   return new Chroma(embeddings, {
     index: client,
