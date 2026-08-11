@@ -52,68 +52,7 @@ const retrieve = async ({ question, caseIds, documentMessageId, limit = 8 }) => 
       });
     }
   } catch (err) {
-    console.warn("[ChromaDB] RAG vector search fallback triggered:", err.message);
-  }
-
-  // 2. MongoDB Fallback Pass
-  if (evidenceMap.size < limit) {
-    const keywords = (question || "").toLowerCase().split(/\s+/).filter((w) => w.length > 2);
-    const regexPatterns = keywords.length > 0 ? keywords.map((k) => new RegExp(k, "i")) : [new RegExp(question || "", "i")];
-
-    if (documentMessageId) {
-      const docMsg = await Message.findOne({ _id: documentMessageId, caseId: { $in: caseIds }, isDeleted: false }).lean();
-      if (docMsg && docMsg.content && authorizedCaseIdsSet.has(String(docMsg.caseId))) {
-        const key = `document:${docMsg._id}`;
-        if (!evidenceMap.has(key)) {
-          evidenceMap.set(key, {
-            document: {
-              pageContent: docMsg.content,
-              metadata: {
-                caseId: String(docMsg.caseId),
-                sourceType: "document",
-                sourceId: String(docMsg._id),
-                fileName: docMsg.fileName || "Attached Document",
-              },
-            },
-            score: 0.2,
-            confidence: 0.85,
-          });
-        }
-      }
-    } else {
-      const messages = await Message.find({
-        caseId: { $in: caseIds },
-        isDeleted: false,
-        content: { $in: regexPatterns },
-      })
-        .populate("senderId", "name")
-        .sort({ createdAt: -1 })
-        .limit(limit)
-        .lean();
-
-      messages.forEach((msg) => {
-        const msgCaseId = String(msg.caseId);
-        if (!authorizedCaseIdsSet.has(msgCaseId)) return;
-
-        const key = `message:${msg._id}`;
-        if (!evidenceMap.has(key)) {
-          evidenceMap.set(key, {
-            document: {
-              pageContent: msg.content || "",
-              metadata: {
-                caseId: msgCaseId,
-                sourceType: "message",
-                sourceId: String(msg._id),
-                senderName: msg.senderId?.name || "User",
-                createdAt: msg.createdAt ? msg.createdAt.toISOString() : "",
-              },
-            },
-            score: 0.2,
-            confidence: 0.75,
-          });
-        }
-      });
-    }
+    console.warn("[ChromaDB] RAG vector search failed:", err.message);
   }
 
   // 3. Source Diversity Filtering (Max 3 items per individual caseId in cross-case mode)

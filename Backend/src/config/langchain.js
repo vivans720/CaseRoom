@@ -14,14 +14,14 @@ async function getLLM() {
 }
 
 /**
- * Lazy get OllamaEmbeddings instance
+ * Lazy get JinaEmbeddings instance
  */
 async function getEmbeddings() {
   if (_embeddings) return _embeddings;
-  const { OllamaEmbeddings } = await import("@langchain/ollama");
-  _embeddings = new OllamaEmbeddings({
-    model: process.env.OLLAMA_EMBED_MODEL || "qllama/bge-small-en-v1.5",
-    baseUrl: process.env.OLLAMA_BASE_URL || "http://localhost:11434",
+  const JinaEmbeddings = require("../services/ai/embeddings/jinaEmbeddings");
+  _embeddings = new JinaEmbeddings({
+    apiKey: process.env.JINA_API_KEY,
+    model: process.env.JINA_EMBED_MODEL || "jina-embeddings-v3",
   });
   return _embeddings;
 }
