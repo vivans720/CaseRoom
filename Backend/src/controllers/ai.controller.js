@@ -268,10 +268,33 @@ const backfillAllCases = async (req, res, next) => {
   try {
     const Message = require("../models/Message");
     const Meeting = require("../models/Meeting");
-    const cases = await Case.find({ status: { $ne: "archived" } }).select("_id").lean();
+    const cases = await Case.find({ status: { $ne: "archived" } }).select("_id title description category priority status createdAt").lean();
     let totalQueued = 0;
     const allJobs = [];
 
+    // 1. Reset all previously failed jobs so the worker retries them
+    const resetResult = await AIIndexJob.updateMany(
+      { status: "failed" },
+      { $set: { status: "queued", attempts: 0, error: "", lockedAt: null } }
+    );
+    const resetCount = resetResult.modifiedCount || 0;
+    if (resetCount > 0) {
+      console.log(`[Backfill] Reset ${resetCount} previously failed jobs to queued`);
+    }
+
+    // 2. Embed case-level data into caseroom_embeddings collection
+    let casesEmbedded = 0;
+    for (const c of cases) {
+      try {
+        await embeddingService.embedCase(c);
+        casesEmbedded++;
+      } catch (err) {
+        console.error(`[Backfill] Failed to embed case ${c._id}:`, err.message);
+      }
+    }
+    console.log(`[Backfill] Embedded ${casesEmbedded}/${cases.length} cases into caseroom_embeddings`);
+
+    // 3. Queue message/document/meeting indexing jobs for caseroom_evidence collection
     for (const c of cases) {
       const caseId = c._id;
       const [messages, meetings] = await Promise.all([
@@ -293,6 +316,8 @@ const backfillAllCases = async (req, res, next) => {
       success: true,
       data: {
         totalCases: cases.length,
+        casesEmbedded,
+        resetFailedJobs: resetCount,
         totalQueued,
         jobs: allJobs,
       },
