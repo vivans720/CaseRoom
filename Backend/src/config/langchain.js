@@ -31,23 +31,21 @@ async function getEmbeddings() {
  */
 async function getNamedVectorStore(collectionName) {
   const { Chroma } = await import("@langchain/community/vectorstores/chroma");
-  const { ChromaClient } = await import("chromadb");
+  const { CloudClient } = await import("chromadb");
   const embeddings = await getEmbeddings();
-  const rawUrl = (process.env.CHROMA_URL || process.env.CHROMADB_URL || "http://localhost:8000").replace(/\/+$/, "");
-  let client;
-  try {
-    const parsed = new URL(rawUrl);
-    const isHttps = parsed.protocol === "https:";
-    const port = parsed.port ? parseInt(parsed.port, 10) : (isHttps ? 443 : 80);
-    client = new ChromaClient({
-      host: parsed.hostname,
-      port,
-      ssl: isHttps,
-      path: rawUrl,
-    });
-  } catch {
-    client = new ChromaClient({ host: "localhost", port: 8000, ssl: false });
+
+  const apiKey = process.env.CHROMA_API_KEY;
+  if (!apiKey) {
+    throw new Error("CHROMA_API_KEY environment variable is required for Chroma Cloud");
   }
+
+  const client = new CloudClient({
+    apiKey,
+    tenant: process.env.CHROMA_TENANT,
+    database: process.env.CHROMA_DATABASE,
+    host: process.env.CHROMA_HOST || "api.trychroma.com",
+  });
+
   return new Chroma(embeddings, {
     index: client,
     collectionName,
