@@ -60,25 +60,19 @@ class RouterLLM extends Runnable {
 
           return response;
         } catch (error) {
-          clearTimeout && undefined; // timeout already cleared on success path
           const latencyMs = Date.now() - startTime;
           const errorType = classifyError(error);
           const retryable = isRetryable(errorType);
 
-          if (!retryable) {
-            console.error(`[LLM] task=${this.task} provider=${provider.name} status=${errorType} non_retryable=true`);
-            throw error;
-          }
+          console.warn(`[LLM] task=${this.task} provider=${provider.name} status=${errorType} latency=${latencyMs}ms attempt=${attempt + 1}/${maxRetries + 1}: ${error.message}`);
 
-          console.warn(`[LLM] task=${this.task} provider=${provider.name} status=${errorType} latency=${latencyMs}ms attempt=${attempt + 1}/${maxRetries + 1}`);
-
-          if (attempt >= maxRetries) {
+          if (!retryable || attempt >= maxRetries) {
             providerHealth.markFailed(provider.name, errorType);
             collectedErrors.push({ provider: provider.name, errorType, error });
 
             const nextProvider = chain[i + 1];
             if (nextProvider) {
-              console.warn(`[LLM] task=${this.task} fallback provider=${nextProvider.name}`);
+              console.warn(`[LLM] task=${this.task} provider ${provider.name} failed (${errorType}), falling back to next provider=${nextProvider.name}`);
             }
             break;
           }

@@ -19,7 +19,7 @@ module.exports = {
     ];
     return new ChatGoogleGenerativeAI({
       apiKey: process.env.GEMINI_API_KEY,
-      modelName: process.env.GEMINI_MODEL || "gemini-3.5-flash",
+      modelName: process.env.GEMINI_MODEL || "gemini-1.5-flash",
       temperature,
       safetySettings,
     });

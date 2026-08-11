@@ -109,11 +109,12 @@ const extractRawText = (value) => {
       .filter(Boolean)
       .join("\n");
   }
-  return String(value.content || value || "");
+  return typeof value.content !== "undefined" && value.content !== null ? String(value.content) : String(value || "");
 };
 
 const parseModelJson = (value) => {
   const raw = extractRawText(value);
+  if (!raw || typeof raw !== "string") return null;
   const text = raw.replace(/```json|```/gi, "").trim();
   try { return JSON.parse(text); } catch { return null; }
 };
