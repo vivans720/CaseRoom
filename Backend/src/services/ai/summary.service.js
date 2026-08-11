@@ -72,8 +72,8 @@ const MeetingSummarySchema = z.object({
  * Clean markdown code block wrappers
  */
 const cleanJsonResponse = (rawText) => {
-  if (!rawText) return "";
-  return rawText
+  const text = typeof rawText === "string" ? rawText : String(rawText || "");
+  return text
     .replace(/```json/gi, "")
     .replace(/```/g, "")
     .trim();

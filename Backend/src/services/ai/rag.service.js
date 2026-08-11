@@ -156,8 +156,26 @@ const citationFor = (item) => {
   };
 };
 
+const extractRawText = (value) => {
+  if (!value) return "";
+  if (typeof value === "string") return value;
+  if (typeof value.content === "string") return value.content;
+  if (Array.isArray(value.content)) {
+    return value.content
+      .map((block) => {
+        if (typeof block === "string") return block;
+        if (block && typeof block === "object" && "text" in block && typeof block.text === "string") return block.text;
+        return "";
+      })
+      .filter(Boolean)
+      .join("\n");
+  }
+  return String(value.content || value || "");
+};
+
 const parseModelJson = (value) => {
-  const text = String(value?.content || value || "").replace(/```json|```/gi, "").trim();
+  const raw = extractRawText(value);
+  const text = raw.replace(/```json|```/gi, "").trim();
   try { return JSON.parse(text); } catch { return null; }
 };
 
@@ -208,16 +226,21 @@ ${context}
 
 QUESTION: ${question}`;
 
-    const llm = await getLLM();
-    const parsed = parseModelJson(await llm.invoke(prompt));
-    const selected = Array.isArray(parsed?.citations) ? parsed.citations.filter((alias) => evidence.some((item) => item.alias === alias)) : [];
-    
-    if (parsed?.answer && (selected.length || parsed.answer === INSUFFICIENT_EVIDENCE)) {
-      output = {
-        answer: String(parsed.answer),
-        citations: selected.map((alias) => citationFor(evidence.find((item) => item.alias === alias))),
-        confidence: selected.length ? Math.min(Number(parsed.confidence) || 0, ...selected.map((alias) => evidence.find((item) => item.alias === alias).confidence)) : 0,
-      };
+    try {
+      const llm = await getLLM();
+      const rawRes = await llm.invoke(prompt);
+      const parsed = parseModelJson(rawRes);
+      const selected = Array.isArray(parsed?.citations) ? parsed.citations.filter((alias) => evidence.some((item) => item.alias === alias)) : [];
+      
+      if (parsed?.answer && (selected.length || parsed.answer === INSUFFICIENT_EVIDENCE)) {
+        output = {
+          answer: String(parsed.answer),
+          citations: selected.map((alias) => citationFor(evidence.find((item) => item.alias === alias))),
+          confidence: selected.length ? Math.min(Number(parsed.confidence) || 0, ...selected.map((alias) => evidence.find((item) => item.alias === alias).confidence)) : 0,
+        };
+      }
+    } catch (err) {
+      console.error("[RAG] LLM invocation failed, using fallback:", err.message);
     }
   }
 

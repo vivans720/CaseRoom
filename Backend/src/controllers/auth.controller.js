@@ -260,24 +260,25 @@ const updateProfilePicture = async (req, res, next) => {
 const sendForgotPasswordOtp = async (req, res, next) => {
   try {
     const { email } = req.body;
+    const cleanEmail = email ? email.toLowerCase().trim() : "";
 
-    if (!email) {
+    if (!cleanEmail) {
       throwValidationError("Email is required");
     }
 
-    if (!isValidEmail(email)) {
+    if (!isValidEmail(cleanEmail)) {
       throwValidationError("Invalid email address format");
     }
 
     // Verify user exists first to prevent sending OTPs to unregistered emails
-    const existingUser = await User.findOne({ email });
+    const existingUser = await User.findOne({ email: cleanEmail });
     if (!existingUser) {
       throwValidationError("No account found with this email address");
     }
 
     // Generate and send OTP
-    const otp = await otpService.createOTP(email, "reset_password");
-    await emailService.sendOTP(email, otp, "reset_password");
+    const otp = await otpService.createOTP(cleanEmail, "reset_password");
+    await emailService.sendOTP(cleanEmail, otp, "reset_password");
 
     res
       .status(200)
@@ -290,8 +291,9 @@ const sendForgotPasswordOtp = async (req, res, next) => {
 const resetPassword = async (req, res, next) => {
   try {
     const { email, otp, newPassword } = req.body;
+    const cleanEmail = email ? email.toLowerCase().trim() : "";
 
-    if (!email || !otp || !newPassword) {
+    if (!cleanEmail || !otp || !newPassword) {
       throwValidationError("Email, OTP, and new password are required");
     }
 
@@ -302,14 +304,14 @@ const resetPassword = async (req, res, next) => {
     }
 
     // Verify OTP first
-    const isOtpValid = await otpService.verifyOTP(email, otp, "reset_password");
+    const isOtpValid = await otpService.verifyOTP(cleanEmail, otp, "reset_password");
 
     if (!isOtpValid) {
       throwValidationError("Invalid or expired OTP");
     }
 
     // Reset password via service layer
-    await authService.resetUserPassword(email, newPassword);
+    await authService.resetUserPassword(cleanEmail, newPassword);
 
     res.status(200).json({
       success: true,
@@ -323,26 +325,27 @@ const resetPassword = async (req, res, next) => {
 const resendOtp = async (req, res, next) => {
   try {
     const { email, type } = req.body;
+    const cleanEmail = email ? email.toLowerCase().trim() : "";
 
-    if (!email || !type) {
+    if (!cleanEmail || !type) {
       throwValidationError("Email and type are required");
     }
 
-    if (!isValidEmail(email)) {
+    if (!isValidEmail(cleanEmail)) {
       throwValidationError("Invalid email address format");
     }
 
     // For login and reset_password, verify user exists
     if (type === "login" || type === "reset_password") {
-      const existingUser = await User.findOne({ email });
+      const existingUser = await User.findOne({ email: cleanEmail });
       if (!existingUser) {
         throwValidationError("No account found with this email address");
       }
     }
 
     // Create and send OTP
-    const otp = await otpService.createOTP(email, type);
-    await emailService.sendOTP(email, otp, type);
+    const otp = await otpService.createOTP(cleanEmail, type);
+    await emailService.sendOTP(cleanEmail, otp, type);
 
     res.status(200).json({
       success: true,

@@ -49,9 +49,15 @@ const generateTempToken = (userId, email) => {
 };
 
 const validateRegistrationData = async (employeeId, email) => {
+  const cleanId = employeeId ? employeeId.trim() : "";
+  const escapedId = cleanId.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const cleanEmail = email ? email.toLowerCase().trim() : "";
   //checking if user already exists
   const existingUser = await User.findOne({
-    $or: [{ employeeId }, { email }],
+    $or: [
+      { employeeId: { $regex: new RegExp(`^${escapedId}$`, "i") } },
+      { email: cleanEmail }
+    ],
   });
 
   if (existingUser) {
@@ -109,9 +115,10 @@ const registerUser = async (userData) => {
 
 const loginUser = async (employeeId, password) => {
   const cleanId = employeeId ? employeeId.trim() : "";
+  const escapedId = cleanId.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   // check user (case-insensitive employeeId)
   const user = await User.findOne({
-    employeeId: { $regex: new RegExp(`^${cleanId}$`, "i") },
+    employeeId: { $regex: new RegExp(`^${escapedId}$`, "i") },
   });
 
   if (!user) {
@@ -237,7 +244,8 @@ const changeUserPassword = async (userId, currentPassword, newPassword) => {
 };
 
 const resetUserPassword = async (email, newPassword) => {
-  const user = await User.findOne({ email });
+  const cleanEmail = email ? email.toLowerCase().trim() : "";
+  const user = await User.findOne({ email: cleanEmail });
 
   if (!user) {
     const error = new Error("No account found with this email address");

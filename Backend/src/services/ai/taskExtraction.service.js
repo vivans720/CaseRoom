@@ -83,7 +83,7 @@ Chat Log:
   const prompt = PromptTemplate.fromTemplate(template);
   const chain = prompt.pipe(llm);
   const response = await chain.invoke({ chatContent: formattedChat });
-  const rawResponse = typeof response === "string" ? response : (response?.content || String(response));
+  const rawResponse = typeof response === "string" ? response : (typeof response?.content === "string" ? response.content : String(response?.content || response || ""));
 
   const cleaned = rawResponse.replace(/```json/gi, "").replace(/```/g, "").trim();
   return JSON.parse(cleaned);
