@@ -36,14 +36,9 @@ async function getNamedVectorStore(collectionName) {
   const rawUrl = process.env.CHROMA_URL || process.env.CHROMADB_URL || "http://localhost:8000";
   let client;
   try {
-    const parsed = new URL(rawUrl);
-    client = new ChromaClient({
-      host: parsed.hostname,
-      port: parsed.port ? parseInt(parsed.port, 10) : (parsed.protocol === "https:" ? 443 : 80),
-      ssl: parsed.protocol === "https:",
-    });
+    client = new ChromaClient({ path: rawUrl });
   } catch {
-    client = new ChromaClient({ host: "localhost", port: 8000, ssl: false });
+    client = new ChromaClient({ path: "http://localhost:8000" });
   }
   return new Chroma(embeddings, {
     index: client,
