@@ -264,6 +264,42 @@ const backfillCase = async (req, res, next) => {
   } catch (error) { next(error); }
 };
 
+const backfillAllCases = async (req, res, next) => {
+  try {
+    const Message = require("../models/Message");
+    const Meeting = require("../models/Meeting");
+    const cases = await Case.find({ status: { $ne: "archived" } }).select("_id").lean();
+    let totalQueued = 0;
+    const allJobs = [];
+
+    for (const c of cases) {
+      const caseId = c._id;
+      const [messages, meetings] = await Promise.all([
+        Message.find({ caseId, isDeleted: false }).select("_id type content fileUrl").lean(),
+        Meeting.find({ caseId, transcript: { $exists: true, $ne: "" } }).select("_id").lean(),
+      ]);
+      const jobs = await Promise.all(messages.flatMap((message) => {
+        const queued = [];
+        if (message.content?.trim()) queued.push(indexingService.enqueue({ caseId, sourceType: "message", sourceId: message._id }));
+        if (message.fileUrl) queued.push(indexingService.enqueue({ caseId, sourceType: "document", sourceId: message._id }));
+        return queued;
+      }).concat(meetings.map((meeting) => indexingService.enqueue({ caseId, sourceType: "meeting", sourceId: meeting._id }))));
+
+      totalQueued += jobs.length;
+      allJobs.push(...jobs.map((job) => String(job._id)));
+    }
+
+    res.status(202).json({
+      success: true,
+      data: {
+        totalCases: cases.length,
+        totalQueued,
+        jobs: allJobs,
+      },
+    });
+  } catch (error) { next(error); }
+};
+
 const getIndexJob = async (req, res, next) => {
   try {
     const job = await AIIndexJob.findById(req.params.jobId).lean();
@@ -318,6 +354,7 @@ module.exports = {
   updateConversation,
   deleteConversation,
   backfillCase,
+  backfillAllCases,
   getIndexJob,
   scanContradictions,
   listInsights,

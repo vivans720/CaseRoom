@@ -33,6 +33,7 @@ router.get("/conversations/:conversationId", aiController.getConversation);
 router.patch("/conversations/:conversationId", aiController.updateConversation);
 router.delete("/conversations/:conversationId", aiController.deleteConversation);
 router.post("/index/backfill", aiController.backfillCase);
+router.post("/index/backfill-all", aiController.backfillAllCases);
 router.get("/index/jobs/:jobId", aiController.getIndexJob);
 router.post("/contradictions", aiController.scanContradictions);
 router.get("/contradictions/:caseId", aiController.listInsights);
