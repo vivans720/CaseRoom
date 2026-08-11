@@ -33,12 +33,20 @@ async function getNamedVectorStore(collectionName) {
   const { Chroma } = await import("@langchain/community/vectorstores/chroma");
   const { ChromaClient } = await import("chromadb");
   const embeddings = await getEmbeddings();
-  const rawUrl = process.env.CHROMA_URL || process.env.CHROMADB_URL || "http://localhost:8000";
+  const rawUrl = (process.env.CHROMA_URL || process.env.CHROMADB_URL || "http://localhost:8000").replace(/\/+$/, "");
   let client;
   try {
-    client = new ChromaClient({ path: rawUrl });
+    const parsed = new URL(rawUrl);
+    const isHttps = parsed.protocol === "https:";
+    const port = parsed.port ? parseInt(parsed.port, 10) : (isHttps ? 443 : 80);
+    client = new ChromaClient({
+      host: parsed.hostname,
+      port,
+      ssl: isHttps,
+      path: rawUrl,
+    });
   } catch {
-    client = new ChromaClient({ path: "http://localhost:8000" });
+    client = new ChromaClient({ host: "localhost", port: 8000, ssl: false });
   }
   return new Chroma(embeddings, {
     index: client,
