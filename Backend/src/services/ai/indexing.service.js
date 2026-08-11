@@ -173,9 +173,11 @@ const processOne = async () => {
       job.error = result.error || "";
     }
     job.completedAt = new Date();
+    console.log(`[IndexWorker] Job ${job._id} (${job.sourceType}:${job.sourceId}) status=${job.status}`);
   } catch (error) {
     job.status = "failed";
     job.error = error.message;
+    console.error(`[IndexWorker] Job ${job._id} (${job.sourceType}:${job.sourceId}) failed:`, error.message);
   }
 
   await job.save();
