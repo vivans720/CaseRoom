@@ -86,9 +86,9 @@ const findSimilarCases = async (caseId, limit = 5) => {
 
       let simPct = 80;
       if (typeof score === "number") {
-        simPct = score <= 1 ? Math.round((1 - score) * 100) : Math.round((1 / (1 + score)) * 100);
+        simPct = Math.round((1 - score / 2) * 100);
       }
-      scoreMap.set(matchedId, Math.min(99, Math.max(1, simPct)));
+      scoreMap.set(matchedId, Math.max(1, Math.min(99, simPct)));
     }
   }
 
@@ -152,8 +152,8 @@ const checkDuplicateCase = async (title, description, userId, excludeCaseId = nu
 
     let simPct = 75;
     if (typeof score === "number") {
-      simPct = score <= 1 ? Math.round((1 - score) * 100) : Math.round((1 / (1 + score)) * 100);
-      simPct = Math.min(99, Math.max(1, simPct));
+      simPct = Math.round((1 - score / 2) * 100);
+      simPct = Math.max(1, Math.min(99, simPct));
     }
 
     if (simPct >= 70) {

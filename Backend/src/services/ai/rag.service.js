@@ -18,7 +18,7 @@ const accessibleCaseIds = async (userId) => (await Case.find({
   $or: [{ creatorId: userId }, { "participants.user": userId }],
 }).select("_id").lean()).map((item) => String(item._id));
 
-const scoreToConfidence = (score) => Math.max(0, Math.min(1, typeof score === "number" ? (score <= 1 ? 1 - score : 1 / (1 + score)) : 0.8));
+const scoreToConfidence = (score) => Math.max(0, Math.min(1, typeof score === "number" ? (1 - score / 2) : 0.8));
 
 /**
  * Production-Grade RAG Evidence Retriever

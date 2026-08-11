@@ -24,7 +24,7 @@ const semanticSearch = async (queryText, userId, limit = 15) => {
       if (cId) {
         let simScore = 75;
         if (typeof score === "number") {
-          simScore = score <= 1 ? Math.round((1 - score) * 100) : Math.round((1 / (1 + score)) * 100);
+          simScore = Math.round((1 - score / 2) * 100);
         }
         const clampedScore = Math.max(30, Math.min(99, simScore));
         if (clampedScore >= 60) {
