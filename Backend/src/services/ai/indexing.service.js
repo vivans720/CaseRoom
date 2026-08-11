@@ -51,9 +51,14 @@ const toDocuments = ({ sourceType, sourceId, caseId, version, baseMetadata, sect
 };
 
 const deleteSource = async (sourceType, sourceId) => {
-  const store = await getEvidenceVectorStore();
-  if (store.delete) {
-    await store.delete({ filter: { sourceId: String(sourceId), sourceType } });
+  try {
+    const store = await getEvidenceVectorStore();
+    if (store.delete) {
+      // Pass single equality filter field to prevent Chroma "Expected 'where' to have exactly one operator, but got 2" error
+      await store.delete({ filter: { sourceId: String(sourceId) } });
+    }
+  } catch (err) {
+    console.warn(`[IndexWorker] Chroma delete vector skipped for ${sourceType}:${sourceId}:`, err.message);
   }
   await AIClaim.deleteMany({ sourceId });
   await AIInsight.updateMany({ "sources.sourceId": String(sourceId) }, { status: "invalidated" });

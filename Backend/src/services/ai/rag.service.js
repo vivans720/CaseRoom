@@ -33,7 +33,7 @@ const retrieve = async ({ question, caseIds, documentMessageId, limit = 8 }) => 
   // 1. Vector Similarity Search Pass
   try {
     const filter = documentMessageId
-      ? { caseId: String(caseIds[0]), sourceType: "document", sourceId: String(documentMessageId) }
+      ? { $and: [{ caseId: String(caseIds[0]) }, { sourceType: "document" }, { sourceId: String(documentMessageId) }] }
       : caseIds.length === 1 ? { caseId: String(caseIds[0]) } : { caseId: { $in: caseIds.map(String) } };
     const store = await getEvidenceVectorStore();
     const results = await store.similaritySearchWithScore(question, limit * 2, filter);
