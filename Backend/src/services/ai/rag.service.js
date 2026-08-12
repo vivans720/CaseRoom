@@ -18,7 +18,7 @@ const accessibleCaseIds = async (userId) => (await Case.find({
   $or: [{ creatorId: userId }, { "participants.user": userId }],
 }).select("_id").lean()).map((item) => String(item._id));
 
-const scoreToConfidence = (score) => Math.max(0, Math.min(1, typeof score === "number" ? (1 - score / 2) : 0.8));
+const scoreToConfidence = (score) => Math.max(0, Math.min(1, typeof score === "number" ? ((1.6 - score) / 0.5) : 0.8));
 
 /**
  * Production-Grade RAG Evidence Retriever
@@ -46,7 +46,7 @@ const retrieve = async ({ question, caseIds, documentMessageId, limit = 8 }) => 
 
         const key = `${document.metadata?.sourceType}:${document.metadata?.sourceId}:${document.metadata?.pageNumber || 1}`;
         const confidence = scoreToConfidence(score);
-        if (confidence >= 0.40) {
+        if (confidence >= 0.25) {
           evidenceMap.set(key, { document, score, confidence });
         }
       });
@@ -57,7 +57,7 @@ const retrieve = async ({ question, caseIds, documentMessageId, limit = 8 }) => 
 
   // 3. Source Diversity Filtering (Max 3 items per individual caseId in cross-case mode)
   const sortedEvidence = Array.from(evidenceMap.values())
-    .filter((e) => e.confidence >= 0.40)
+    .filter((e) => e.confidence >= 0.25)
     .sort((a, b) => b.confidence - a.confidence);
 
   const caseCountMap = new Map();

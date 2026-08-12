@@ -16,9 +16,6 @@ router.get("/search", aiController.searchCases);
 router.get("/similar-cases/:caseId", aiController.getSimilarCases);
 router.post("/duplicate-check", aiController.checkDuplicate);
 
-// Phase 3 — Participant Recommendation
-router.get("/recommend-participants/:caseId", aiController.getParticipantRecommendations);
-
 // Phase 4 — Timeline Generation
 router.post("/timeline", aiController.getTimeline);
 
@@ -27,7 +24,7 @@ router.post("/extract-tasks", aiController.extractTasks);
 
 router.post("/case-assistant", aiController.askCaseAssistant);
 router.post("/document-qa", aiController.askDocument);
-router.post("/knowledge-assistant", aiController.askKnowledge);
+
 router.get("/conversations", aiController.listConversations);
 router.get("/conversations/:conversationId", aiController.getConversation);
 router.patch("/conversations/:conversationId", aiController.updateConversation);

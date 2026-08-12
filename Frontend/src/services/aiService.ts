@@ -63,24 +63,6 @@ export interface DuplicateCheckResult {
   matchedCases?: DuplicateCandidateItem[]
 }
 
-export interface ParticipantRecommendation {
-  user: {
-    _id: string
-    name: string
-    email: string
-    employeeId: string
-    roleName?: string
-    skills?: string[]
-    profilePictureUrl?: string | null
-  }
-  matchPercentage: number
-  matchingSkills: string[]
-  pastCasesCount: number
-  pastCasesTitles?: string[]
-  availabilityStatus?: string
-  reason: string
-}
-
 export interface TimelineItem {
   time: string
   event: string
@@ -196,11 +178,6 @@ export const aiService = {
     return response.data.data
   },
 
-  recommendParticipants: async (caseId: string): Promise<ParticipantRecommendation[]> => {
-    const response = await api.get(`/ai/recommend-participants/${caseId}`)
-    return response.data.data
-  },
-
   generateTimeline: async (caseId: string, forceRefresh = false): Promise<TimelineData> => {
     const response = await api.post("/ai/timeline", { caseId, forceRefresh })
     return response.data.data
@@ -218,11 +195,6 @@ export const aiService = {
 
   askDocument: async (caseId: string, documentMessageId: string, question: string, conversationId?: string): Promise<AIAnswer> => {
     const response = await api.post("/ai/document-qa", { caseId, documentMessageId, question, conversationId })
-    return response.data.data
-  },
-
-  askKnowledge: async (question: string, conversationId?: string): Promise<AIAnswer> => {
-    const response = await api.post("/ai/knowledge-assistant", { question, conversationId })
     return response.data.data
   },
 

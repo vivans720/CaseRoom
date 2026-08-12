@@ -87,7 +87,7 @@ const upsertSource = async (job) => {
         createdAt: message.createdAt.toISOString(),
         fileName: "",
       },
-      sections: [{ text: message.content, segment: "message" }],
+      sections: [{ text: `[Message from ${message.senderId?.name || "Unknown"}]: ${message.content}`, segment: "message" }],
     });
   } else if (sourceType === "document") {
     const message = await Message.findById(sourceId).lean();

@@ -1,7 +1,6 @@
 const summaryService = require("../services/ai/summary.service");
 const embeddingService = require("../services/ai/embedding.service");
 const searchService = require("../services/ai/search.service");
-const participantService = require("../services/ai/participant.service");
 const timelineService = require("../services/ai/timeline.service");
 const taskExtractionService = require("../services/ai/taskExtraction.service");
 const ragService = require("../services/ai/rag.service");
@@ -89,7 +88,7 @@ const getSimilarCases = async (req, res, next) => {
   try {
     const { caseId } = req.params;
     const { limit } = req.query;
-    const cases = await embeddingService.findSimilarCases(caseId, req.user._id, parseInt(limit, 10) || 5);
+    const cases = await embeddingService.findSimilarCases(caseId, parseInt(limit, 10) || 5);
 
     return res.status(200).json({
       success: true,
@@ -112,29 +111,6 @@ const checkDuplicate = async (req, res, next) => {
     return res.status(200).json({
       success: true,
       data: result,
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-
-/**
- * Recommend participants based on skills, roleName, and past similar cases
- * GET /api/v1/ai/recommend-participants/:caseId
- */
-const getParticipantRecommendations = async (req, res, next) => {
-  try {
-    const { caseId } = req.params;
-    const { limit } = req.query;
-    const recommendations = await participantService.recommendParticipants(
-      caseId,
-      req.user._id,
-      parseInt(limit, 10) || 5
-    );
-
-    return res.status(200).json({
-      success: true,
-      data: recommendations,
     });
   } catch (error) {
     next(error);
@@ -197,14 +173,6 @@ const askDocument = async (req, res, next) => {
   try {
     const { caseId, documentMessageId, question, conversationId } = req.body;
     const data = await ragService.answer({ userId: req.user._id, scope: "document", caseId, documentMessageId, question, conversationId });
-    res.status(200).json({ success: true, data });
-  } catch (error) { next(error); }
-};
-
-const askKnowledge = async (req, res, next) => {
-  try {
-    const { question, conversationId } = req.body;
-    const data = await ragService.answer({ userId: req.user._id, scope: "knowledge", question, conversationId });
     res.status(200).json({ success: true, data });
   } catch (error) { next(error); }
 };
@@ -368,12 +336,12 @@ module.exports = {
   searchCases,
   getSimilarCases,
   checkDuplicate,
-  getParticipantRecommendations,
+
   getTimeline,
   extractTasks,
   askCaseAssistant,
   askDocument,
-  askKnowledge,
+
   listConversations,
   getConversation,
   updateConversation,

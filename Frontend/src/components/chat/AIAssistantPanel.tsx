@@ -76,9 +76,7 @@ export const AIAssistantPanel = ({ caseId, onClose, onJumpToMessage }: Props): J
     setLoading(true);
     setError("");
     try {
-      const response = caseId
-        ? await aiService.askCaseAssistant(caseId, textToAsk, conversation?._id)
-        : await aiService.askKnowledge(textToAsk, conversation?._id);
+      const response = await aiService.askCaseAssistant(caseId!, textToAsk, conversation?._id);
       setAnswers((previous) => [...previous, { ...response, question: textToAsk }]);
       if (!conversation) {
         const created = await aiService.getConversation(response.conversationId);
@@ -195,21 +193,36 @@ export const AIAssistantPanel = ({ caseId, onClose, onJumpToMessage }: Props): J
               <div className="prose prose-xs max-w-none text-slate-800 leading-relaxed whitespace-pre-wrap">
                 {item.answer}
               </div>
-              {item.citations && item.citations.length > 0 && (
-                <div className="pt-2 border-t border-indigo-100/80 flex flex-wrap gap-1">
-                  {item.citations.map((citation, citationIndex) => (
-                    <button
-                      key={`${citation.sourceId}-${citationIndex}`}
-                      type="button"
-                      onClick={() => useCitation(citation)}
-                      className="inline-flex items-center gap-1 rounded-md bg-white border border-indigo-200 px-2 py-0.5 text-[10px] font-semibold text-indigo-700 hover:bg-indigo-100 transition-colors"
-                    >
-                      <span>[{citationIndex + 1}] {citation.label}</span>
-                      <ArrowUpRight className="w-2.5 h-2.5" />
-                    </button>
-                  ))}
-                </div>
-              )}
+              
+              <div className="pt-2 border-t border-indigo-100/80 flex items-center justify-between">
+                {item.citations && item.citations.length > 0 ? (
+                  <div className="flex flex-wrap gap-1">
+                    {item.citations.map((citation, citationIndex) => (
+                      <button
+                        key={`${citation.sourceId}-${citationIndex}`}
+                        type="button"
+                        onClick={() => useCitation(citation)}
+                        className="inline-flex items-center gap-1 rounded-md bg-white border border-indigo-200 px-2 py-0.5 text-[10px] font-semibold text-indigo-700 hover:bg-indigo-100 transition-colors"
+                      >
+                        <span>[{citationIndex + 1}] {citation.label}</span>
+                        <ArrowUpRight className="w-2.5 h-2.5" />
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <div /> // Empty div for flex space-between
+                )}
+                
+                {item.confidence !== undefined && (
+                  <div className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
+                    item.confidence >= 0.7 ? 'text-green-700 bg-green-100' : 
+                    item.confidence >= 0.4 ? 'text-amber-700 bg-amber-100' : 
+                    'text-red-700 bg-red-100'
+                  }`}>
+                    {Math.round(item.confidence * 100)}% Confidence
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         ))}

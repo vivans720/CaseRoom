@@ -23,10 +23,9 @@ import type {
 
 interface NoCaseSelectedProps {
   onOpenCreateCase?: () => void;
-  onOpenKnowledge?: () => void;
 }
 
-const NoCaseSelected = ({ onOpenCreateCase, onOpenKnowledge }: NoCaseSelectedProps): JSX.Element => (
+const NoCaseSelected = ({ onOpenCreateCase }: NoCaseSelectedProps): JSX.Element => (
   <div className="relative flex h-full flex-1 items-center justify-center bg-[#f6f5fa] overflow-hidden p-6">
     {/* Background Aurora & Ambient Glows */}
     <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
@@ -53,7 +52,6 @@ const NoCaseSelected = ({ onOpenCreateCase, onOpenKnowledge }: NoCaseSelectedPro
           }
         }}
       />
-      <button type="button" onClick={onOpenKnowledge} className="mx-auto mt-4 block rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white">Ask organization knowledge</button>
     </div>
   </div>
 );
@@ -143,7 +141,6 @@ export const DashboardPage = (): JSX.Element => {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
   const [jumpToMessageId, setJumpToMessageId] = useState<string | null>(null);
   const [previewUser, setPreviewUser] = useState<User | null>(null);
-  const [showKnowledge, setShowKnowledge] = useState(false);
 
   const { onlineUserIds, lastSeenUpdates } = usePresence(caseId);
 
@@ -191,7 +188,6 @@ export const DashboardPage = (): JSX.Element => {
               const btn = document.getElementById("new-case-button")
               btn?.click()
             }}
-            onOpenKnowledge={() => setShowKnowledge(true)}
           />
         )}
       </main>
@@ -230,12 +226,6 @@ export const DashboardPage = (): JSX.Element => {
         )}
 
       <NotificationToast />
-
-      {showKnowledge && (
-        <div className="fixed inset-y-0 right-0 z-50 w-full border-l border-slate-200 shadow-2xl md:w-[380px]">
-          <AIAssistantPanel onClose={() => setShowKnowledge(false)} />
-        </div>
-      )}
 
       <ContactPreviewModal
         isOpen={!!previewUser}

@@ -86,7 +86,7 @@ const findSimilarCases = async (caseId, limit = 5) => {
 
       let simPct = 80;
       if (typeof score === "number") {
-        simPct = Math.round((1 - score / 2) * 100);
+        simPct = Math.round(Math.max(0, Math.min(1, (1.6 - score) / 0.5)) * 100);
       }
       scoreMap.set(matchedId, Math.max(1, Math.min(99, simPct)));
     }
@@ -122,9 +122,9 @@ const findSimilarCases = async (caseId, limit = 5) => {
     };
   });
 
-  // Filter out weak matches (<65%) and sort descending
+  // Filter out weak matches (<45%) and sort descending
   return candidates
-    .filter((c) => c.similarityPercentage >= 65)
+    .filter((c) => c.similarityPercentage >= 45)
     .sort((a, b) => b.similarityPercentage - a.similarityPercentage)
     .slice(0, limit);
 };
@@ -152,7 +152,7 @@ const checkDuplicateCase = async (title, description, userId, excludeCaseId = nu
 
     let simPct = 75;
     if (typeof score === "number") {
-      simPct = Math.round((1 - score / 2) * 100);
+      simPct = Math.round(Math.max(0, Math.min(1, (1.6 - score) / 0.5)) * 100);
       simPct = Math.max(1, Math.min(99, simPct));
     }
 

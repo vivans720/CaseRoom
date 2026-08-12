@@ -24,10 +24,10 @@ const semanticSearch = async (queryText, userId, limit = 15) => {
       if (cId) {
         let simScore = 75;
         if (typeof score === "number") {
-          simScore = Math.round((1 - score / 2) * 100);
+          simScore = Math.round(Math.max(0, Math.min(1, (1.6 - score) / 0.5)) * 100);
         }
         const clampedScore = Math.max(30, Math.min(99, simScore));
-        if (clampedScore >= 60) {
+        if (clampedScore >= 45) {
           scoreMap.set(cId, clampedScore);
           candidateIdsSet.add(cId);
         }
