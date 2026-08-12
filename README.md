@@ -65,6 +65,15 @@
 - **Tailwind CSS v4 & Dynamic Viewport (`dvh`)**: Elimination of mobile address bar cutoffs.
 - **Slide-up Bottom Sheets**: Contextual right panels transition smoothly into mobile bottom sheets on narrow viewports.
 
+### 🤖 AI-Powered Investigation & Capabilities
+
+- **Multi-Provider LLM Router**: Intelligent fallback and routing between Cerebras, Gemini, Groq, Mistral, OpenRouter, and local Ollama.
+- **RAG & Semantic Search**: Chroma Cloud Vector Database and Jina Embeddings for fast, semantic retrieval of case evidence and cross-case similarity matching.
+- **Automated Summarization**: AI-generated case and thread summaries to quickly bring team members up to speed.
+- **Smart Task Extraction**: Automatically extract action items and tasks directly from conversational context and case documents.
+- **Timeline Generation**: AI-driven timeline reconstruction from unstructured case messages and evidence.
+- **Contradiction Detection**: AI analysis to identify conflicting statements and inconsistencies across claims and evidence.
+
 ---
 
 ## 🛠️ Tech Stack
@@ -75,6 +84,8 @@
 | **Styling & UI**                  | Tailwind CSS v4, Lucide Icons, Canvas API                  |
 | **Backend API**                   | Node.js, Express 5                                         |
 | **Database & ODM**                | MongoDB, Mongoose 9                                        |
+| **Vector Database**               | Chroma Cloud Vector Store                                  |
+| **AI Orchestration & Embeddings** | LangChain, Jina Embeddings, Multi-Provider LLM Router      |
 | **Real-Time Communication**       | Socket.IO, WebRTC (Mesh SFU/P2P)                           |
 | **Authentication**                | JWT, Nodemailer / Brevo OTP Verification                   |
 | **Cloud Storage**                 | Cloudinary (`multer-storage-cloudinary`)                   |
