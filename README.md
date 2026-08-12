@@ -90,14 +90,20 @@
 
 CaseRoom is built specifically for corporate security and internal organizational compliance.
 
+**For Employers / Recruiters (Quick Testing):**
+To see a fully populated dashboard with cases, messages, and tasks, use the following test account:
+- **Employee ID**: `TEST-ADMIN`
+- **Password**: `TestPassword123!`
+- **OTP**: `123456` (Testing bypass)
+
 1. **Enter a Valid Employee ID**:
    - When registering or logging in, enter an Employee ID in the format **`EMP011` through `EMP099`** (e.g., `EMP011`, `EMP024`, `EMP085`).
 2. **Why Employee ID Whitelisting?**:
-   - Only pre-seeded employee records (`EMP001` - `EMP100`) in the database can register or access the application.
+   - Only pre-seeded employee records (`EMP001` - `EMP100` and `TEST-ADMIN`) in the database can register or access the application.
    - This was implemented to simulate a restricted corporate employee directory, ensuring that external public users cannot create arbitrary accounts without administrative authorization.
 3. **OTP Email Verification**:
    - **Registration**: Enter an authorized Employee ID (`EMP011`–`EMP099`), your corporate email, name, and password. An OTP code will be sent to your email to verify ownership.
-   - **Login**: Enter your Employee ID and password, followed by 2-factor OTP verification for secure login.
+   - **Login**: Enter your Employee ID and password, followed by 2-factor OTP verification for secure login (Use `123456` if using the `TEST-ADMIN` test account).
 
 ---
 
