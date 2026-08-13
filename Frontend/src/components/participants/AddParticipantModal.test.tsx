@@ -95,7 +95,7 @@ describe("AddParticipantModal — search", () => {
     await userEvent.type(input, "Bob")
 
     await waitFor(
-      () => expect(screen.getByText("Bob Jones")).toBeInTheDocument(),
+      () => expect(screen.getByTitle("Bob Jones")).toBeInTheDocument(),
       { timeout: 2000 },
     )
   })
@@ -187,7 +187,7 @@ describe("AddParticipantModal — add action", () => {
     await userEvent.type(input, "Bob")
 
     await waitFor(
-      () => expect(screen.getByText("Bob Jones")).toBeInTheDocument(),
+      () => expect(screen.getByTitle("Bob Jones")).toBeInTheDocument(),
       { timeout: 2000 },
     )
 
@@ -223,7 +223,7 @@ describe("AddParticipantModal — add action", () => {
     await userEvent.type(input, "Bob")
 
     await waitFor(
-      () => expect(screen.getByText("Bob Jones")).toBeInTheDocument(),
+      () => expect(screen.getByTitle("Bob Jones")).toBeInTheDocument(),
       { timeout: 2000 },
     )
 

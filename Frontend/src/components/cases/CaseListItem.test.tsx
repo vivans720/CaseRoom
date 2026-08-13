@@ -56,16 +56,16 @@ describe("CaseListItem", () => {
 
   it("shows active status dot for active case", () => {
     renderItem(makeCase({ status: "active" }))
-    const dot = screen.getByTitle("Active")
+    const dot = screen.getByTitle("Status: Active")
     expect(dot).toBeInTheDocument()
-    expect(dot).toHaveClass("bg-success")
+    expect(dot).toHaveClass("bg-emerald-500")
   })
 
   it("shows archived status dot for archived case", () => {
     renderItem(makeCase({ status: "archived" }))
-    const dot = screen.getByTitle("Archived")
+    const dot = screen.getByTitle("Status: Archived")
     expect(dot).toBeInTheDocument()
-    expect(dot).toHaveClass("bg-text-tertiary")
+    expect(dot).toHaveClass("bg-slate-400")
   })
 
   it("calls onPin when pin button clicked on unpinned case", () => {
@@ -97,7 +97,7 @@ describe("CaseListItem", () => {
       </MemoryRouter>,
     )
     const link = screen.getByRole("link", { name: /Case: Test Case/i })
-    expect(link).toHaveClass("bg-primary-light")
-    expect(link).toHaveClass("border-primary")
+    expect(link).toHaveClass("bg-gradient-to-r")
+    expect(link).toHaveClass("border-purple-300")
   })
 })

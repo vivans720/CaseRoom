@@ -35,16 +35,7 @@ export const EmptyState = ({
       </div>
 
       <h3 className="text-2xl font-extrabold tracking-tight text-slate-900 leading-snug">
-        {title.includes("Select a case") ? (
-          <>
-            Select a case to <br />
-            <span className="bg-gradient-to-r from-[#5B4CF3] via-[#7B3BF8] to-[#8B2EFF] bg-clip-text text-transparent">
-              Start Collaborating
-            </span>
-          </>
-        ) : (
-          title
-        )}
+        {title}
       </h3>
 
       {description && (

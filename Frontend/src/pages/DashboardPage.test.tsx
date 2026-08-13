@@ -49,7 +49,7 @@ describe("DashboardPage", () => {
   it("shows empty state when no case is selected", () => {
     renderDashboard("/");
     expect(
-      screen.getByText("Select a case to get started"),
+      screen.getByText(/Select a case to/i),
     ).toBeInTheDocument();
   });
 
@@ -57,7 +57,7 @@ describe("DashboardPage", () => {
     renderDashboard("/case/case-1");
     expect(screen.getByTestId("chat-view")).toBeInTheDocument();
     expect(
-      screen.queryByText("Select a case to get started"),
+      screen.queryByText(/Select a case to/i),
     ).not.toBeInTheDocument();
   });
 });

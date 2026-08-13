@@ -176,7 +176,7 @@ export const DashboardPage = (): JSX.Element => {
       {/* Center: Chat view (Outlet) or empty state */}
       <main
         className={`${
-          hasCaseSelected ? "flex w-full bg-white" : "hidden md:flex md:flex-1"
+          hasCaseSelected ? "flex w-full bg-white" : "flex flex-1"
         } min-h-0 min-w-0 flex-1 flex-col h-full`}
       >
         <h1 className="sr-only">Dashboard</h1>

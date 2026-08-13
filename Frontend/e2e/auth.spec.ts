@@ -61,7 +61,7 @@ test.describe("Auth pages", () => {
     await expect(page.getByLabel(/confirm password/i)).toBeVisible()
     // Step-1 submit button advances to the OTP verification screen
     await expect(
-      page.getByRole("button", { name: /next.*verify.*email/i }),
+      page.getByRole("button", { name: /continue to verification|next.*verify/i }),
     ).toBeVisible()
   })
 
@@ -303,7 +303,7 @@ test.describe("Auth pages", () => {
     await page.getByLabel(/phone/i).fill("9876543210")
     await page.getByLabel("Password", { exact: true }).fill("Password1!")
     await page.getByLabel(/confirm password/i).fill("Password1!")
-    await page.getByRole("button", { name: /next.*verify.*email/i }).click()
+    await page.getByRole("button", { name: /continue to verification|next.*verify/i }).click()
 
     // Step 2 — OTP entry screen
     await expect(page.getByRole("button", { name: /create account/i })).toBeVisible()

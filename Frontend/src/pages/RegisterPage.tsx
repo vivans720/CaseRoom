@@ -61,16 +61,6 @@ export const RegisterPage = (): JSX.Element => {
         {/* LEFT SECTION: Promotional */}
         <div className="hidden lg:flex flex-col justify-between bg-gradient-to-br from-purple-50/70 via-white to-indigo-50/50 p-8 lg:p-10 border-b border-slate-100 lg:border-b-0 lg:after:absolute lg:after:right-0 lg:after:top-10 lg:after:bottom-10 lg:after:w-px lg:after:bg-gradient-to-b lg:after:from-transparent lg:after:via-slate-200/90 lg:after:to-transparent">
           
-          {/* Logo Header */}
-          <div className="flex items-center gap-1.5 transition-transform duration-300 hover:scale-[1.02] cursor-pointer">
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-r from-[#5B4CF3] to-[#8B2EFF] text-white shadow-md shadow-[#5B4CF3]/30">
-              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-              </svg>
-            </div>
-            <span className="text-xl font-bold tracking-tight text-slate-900 ml-1">CaseRoom</span>
-          </div>
-
           {/* 3D Isometric Illustration Section */}
           <div className="relative my-4 flex flex-col items-center text-center">
             
@@ -100,7 +90,7 @@ export const RegisterPage = (): JSX.Element => {
             </div>
             
             <p className="mt-1.5 text-xs font-medium text-slate-500 max-w-xs leading-relaxed">
-              Create your account to start collaborating on IT incident resolution, case dockets, and tech workflows.
+              Sign up to start collaborating on IT incident resolution, case dockets, and tech workflows.
             </p>
           </div>
 
@@ -134,6 +124,16 @@ export const RegisterPage = (): JSX.Element => {
         <div className="flex flex-col justify-center bg-white p-8 lg:p-10">
           <div className="mx-auto w-full max-w-sm">
             
+            {/* Logo Header */}
+            <div className="flex items-center gap-1.5 mb-5">
+              <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-gradient-to-r from-[#5B4CF3] to-[#8B2EFF] text-white shadow-md shadow-[#5B4CF3]/30">
+                <svg className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                </svg>
+              </div>
+              <h1 className="text-xl font-bold tracking-tight text-slate-900 ml-1">CaseRoom</h1>
+            </div>
+
             {/* Header */}
             <div className="mb-5">
               <p className="text-xs font-bold uppercase tracking-wider text-[#5B4CF3]">

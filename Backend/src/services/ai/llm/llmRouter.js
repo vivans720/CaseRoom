@@ -70,6 +70,10 @@ class RouterLLM extends Runnable {
             providerHealth.markFailed(provider.name, errorType);
             collectedErrors.push({ provider: provider.name, errorType, error });
 
+            if (!retryable) {
+              throw error;
+            }
+
             const nextProvider = chain[i + 1];
             if (nextProvider) {
               console.warn(`[LLM] task=${this.task} provider ${provider.name} failed (${errorType}), falling back to next provider=${nextProvider.name}`);

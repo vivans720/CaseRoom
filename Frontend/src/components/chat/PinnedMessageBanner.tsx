@@ -20,8 +20,8 @@ export const PinnedMessageBanner = ({
   useEffect(() => {
     let active = true;
     getPinnedMessages(caseId).then((data) => {
-      if (active) {
-        setPinnedList(data);
+      if (active && Array.isArray(data)) {
+        setPinnedList(data.filter(Boolean));
         setCurrentIndex(0);
       }
     }).catch(console.error);
@@ -30,34 +30,27 @@ export const PinnedMessageBanner = ({
 
   // Update pinnedList based on messages array changes (new pins/unpins from socket)
   useEffect(() => {
-    // If a message in pinnedList was unpinned in the local `messages` state, remove it.
-    // If a new message was pinned, add it.
     setPinnedList((prev) => {
-      const currentPinned = messages.filter((m) => m.isPinned && !m.isDeleted);
+      const msgList = Array.isArray(messages) ? messages : [];
+      const currentPinned = msgList.filter((m) => m && m.isPinned && !m.isDeleted);
       
-      let updated = [...prev];
+      let updated = prev.filter(Boolean);
       
-      // Remove unpinned
-      updated = updated.filter((m) => currentPinned.some((cm) => cm._id === m._id) || m.isPinned); // wait, if not in currentPinned, it might just not be loaded in `messages` yet.
-      
-      // We should only remove if we KNOW it was unpinned.
       updated = updated.filter((m) => {
-        const found = messages.find((cm) => cm._id === m._id);
+        const found = msgList.find((cm) => cm && cm._id === m._id);
         if (found && (!found.isPinned || found.isDeleted)) return false;
         return true;
       });
 
-      // Add newly pinned
       currentPinned.forEach((cm) => {
-        if (!updated.find((m) => m._id === cm._id)) {
-          updated.unshift(cm); // prepend latest
+        if (!updated.find((m) => m && m._id === cm._id)) {
+          updated.unshift(cm);
         }
       });
 
-      // Sort by pinnedAt descending
       updated.sort((a, b) => {
-        const timeA = a.pinnedAt ? new Date(a.pinnedAt).getTime() : 0;
-        const timeB = b.pinnedAt ? new Date(b.pinnedAt).getTime() : 0;
+        const timeA = a && a.pinnedAt ? new Date(a.pinnedAt).getTime() : 0;
+        const timeB = b && b.pinnedAt ? new Date(b.pinnedAt).getTime() : 0;
         return timeB - timeA;
       });
 
@@ -67,9 +60,10 @@ export const PinnedMessageBanner = ({
 
   if (pinnedList.length === 0) return null;
 
-  // Ensure index is valid
   const safeIndex = currentIndex >= pinnedList.length ? 0 : currentIndex;
   const currentPin = pinnedList[safeIndex];
+
+  if (!currentPin) return null;
 
   const handleBannerClick = () => {
     onMessageClick(currentPin._id);
@@ -78,8 +72,8 @@ export const PinnedMessageBanner = ({
     setCurrentIndex((prev) => (prev + 1) % pinnedList.length);
   };
 
-  const senderName = typeof currentPin.senderId === "object" 
-    ? (currentPin.senderId as any).name 
+  const senderName = currentPin.senderId && typeof currentPin.senderId === "object" 
+    ? (currentPin.senderId as any).name || "Unknown"
     : "Unknown";
 
   const contentText = currentPin.type !== "text" 

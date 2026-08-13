@@ -16,3 +16,23 @@ Object.defineProperty(window, "IntersectionObserver", {
   configurable: true,
   value: IntersectionObserverMock,
 });
+
+const createStorageMock = () => {
+  let store: Record<string, string> = {};
+  return {
+    getItem: vi.fn((key: string) => store[key] || null),
+    setItem: vi.fn((key: string, value: string) => {
+      store[key] = String(value);
+    }),
+    removeItem: vi.fn((key: string) => {
+      delete store[key];
+    }),
+    clear: vi.fn(() => {
+      store = {};
+    }),
+  };
+};
+
+global.localStorage = createStorageMock() as any;
+global.sessionStorage = createStorageMock() as any;
+

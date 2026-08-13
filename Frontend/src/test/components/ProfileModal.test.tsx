@@ -59,7 +59,7 @@ describe("ProfileModal", () => {
     expect(screen.getByText("1234567890")).toBeInTheDocument();
     expect(screen.getByText(/2023/i)).toBeInTheDocument();
     expect(screen.getByLabelText("Choose profile picture")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Edit" })).toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: "Edit" }).length).toBeGreaterThan(0);
   });
 
   it("allows editing phone number", async () => {
@@ -73,8 +73,9 @@ describe("ProfileModal", () => {
 
     render(<ProfileModal isOpen={true} onClose={vi.fn()} />);
 
-    const editBtn = screen.getByRole("button", { name: "Edit" });
-    fireEvent.click(editBtn);
+    const editBtns = screen.getAllByRole("button", { name: "Edit" });
+    // Click the last Edit button which is for Phone in the current UI
+    fireEvent.click(editBtns[editBtns.length - 1]);
 
     const phoneInput = screen.getByPlaceholderText("Enter phone number") as HTMLInputElement;
     expect(phoneInput.value).toBe("1234567890");

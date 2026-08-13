@@ -1,0 +1,82 @@
+name: CI
+
+# GitHub Actions CI workflow for CaseRoom
+# Triggers on push/PR to main and runs backend tests, frontend tests, frontend build, and e2e tests in parallel.
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  backend-tests:
+    runs-on: ubuntu-latest
+    env:
+      NODE_ENV: test
+      JWT_SECRET: test-jwt-secret-for-ci
+      MONGODB_URI: ''
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Setup Node.js 18
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+      - name: Install backend dependencies
+        run: cd Backend && npm ci
+      - name: Run backend tests
+        run: cd Backend && npm test
+
+  frontend-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Setup Node.js 18
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+      - name: Install frontend dependencies
+        run: cd Frontend && npm ci
+      - name: Run vitest
+        run: cd Frontend && npm test
+
+  frontend-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Setup Node.js 18
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+      - name: Install frontend dependencies
+        run: cd Frontend && npm ci
+      - name: Build frontend
+        run: cd Frontend && npm run build
+
+  e2e-tests:
+    runs-on: ubuntu-latest
+    env:
+      CI: true
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Setup Node.js 18
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+      - name: Install frontend dependencies
+        run: cd Frontend && npm ci
+      - name: Install Playwright browsers
+        run: cd Frontend && npx playwright install --with-deps chromium
+      - name: Run Playwright tests
+        run: cd Frontend && npx playwright test
+      - name: Upload Playwright report
+        uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-report
+          path: Frontend/playwright-report/
+          retention-days: 30

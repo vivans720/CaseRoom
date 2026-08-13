@@ -137,8 +137,10 @@ describe("ParticipantsPanel — creator controls", () => {
     await waitFor(() =>
       expect(screen.getByRole("button", { name: /add participant/i })).toBeInTheDocument(),
     )
+    // Open context menu for Alice
+    await userEvent.click(screen.getByRole("button", { name: /manage participant/i }))
     // Remove shows for non-creator participant (Alice)
-    expect(screen.getByRole("button", { name: /remove alice smith/i })).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: /remove user/i })).toBeInTheDocument()
   })
 
   it("does not show Add or Remove buttons when current user is not the creator", async () => {
@@ -177,11 +179,15 @@ describe("ParticipantsPanel — remove action", () => {
     render(<ParticipantsPanel caseId="case-1" />)
 
     await waitFor(() =>
-      expect(screen.getByRole("button", { name: /remove alice smith/i })).toBeInTheDocument(),
+      expect(screen.getByRole("button", { name: /manage participant/i })).toBeInTheDocument(),
     )
 
     await userEvent.click(
-      screen.getByRole("button", { name: /remove alice smith/i }),
+      screen.getByRole("button", { name: /manage participant/i }),
+    )
+
+    await userEvent.click(
+      screen.getByRole("button", { name: /remove user/i }),
     )
 
     await waitFor(() =>

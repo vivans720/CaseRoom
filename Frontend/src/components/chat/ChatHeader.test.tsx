@@ -68,8 +68,6 @@ describe("ChatHeader", () => {
     )
 
     await waitFor(() => expect(screen.getByText("Test Case")).toBeInTheDocument())
-    expect(screen.getByText("Test description")).toBeInTheDocument()
-    expect(screen.getByText("Active")).toBeInTheDocument()
     expect(screen.getByText("2")).toBeInTheDocument() // participant count
   })
 

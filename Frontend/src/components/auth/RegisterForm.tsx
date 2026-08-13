@@ -179,12 +179,7 @@ export const RegisterForm = ({ onStepChange }: RegisterFormProps): JSX.Element =
     }
   }, [resendTimer])
 
-  // Auto-submit OTP when 6 digits entered
-  useEffect(() => {
-    if (step === "otp" && otpValue.length === 6 && !isSubmitting && !isVerified) {
-      handleOtpSubmit(otpValue)
-    }
-  }, [otpValue, step])
+
 
   const handleResendOtp = async () => {
     if (resendTimer > 0 || isSubmitting) return
@@ -427,6 +422,7 @@ export const RegisterForm = ({ onStepChange }: RegisterFormProps): JSX.Element =
               <button
                 type="button"
                 onClick={() => setShowPassword((prev) => !prev)}
+                aria-label={showPassword ? "Hide password" : "Show password"}
                 className="absolute right-2.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 p-1 rounded-md transition-all focus:outline-none"
               >
                 {showPassword ? <EyeClosedIcon /> : <EyeOpenIcon />}
@@ -447,7 +443,7 @@ export const RegisterForm = ({ onStepChange }: RegisterFormProps): JSX.Element =
               </div>
             )}
 
-            {errors.password && !formData.password && (
+            {errors.password && (
               <p id="register-password-error" className="text-[11px] text-red-500 font-medium pl-0.5">
                 {errors.password}
               </p>
@@ -564,6 +560,7 @@ export const RegisterForm = ({ onStepChange }: RegisterFormProps): JSX.Element =
           type="submit"
           disabled={isSubmitting || isVerified}
           aria-busy={isSubmitting}
+          aria-label={isSubmitting ? (step === "details" ? "Sending Code..." : "Verifying...") : (step === "details" ? "Continue to Verification" : "Create Account")}
           className="relative flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-[#5B4CF3] to-[#8B2EFF] px-4 py-3 text-xs font-bold text-white shadow-[0_14px_35px_rgba(91,76,243,0.4)] transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_20px_45px_rgba(91,76,243,0.55)] focus:outline-none focus:ring-4 focus:ring-[#6C4CF1]/25 active:translate-y-0 active:shadow-[0_8px_20px_rgba(91,76,243,0.3)] disabled:opacity-50 disabled:pointer-events-none"
         >
           {isSubmitting && (

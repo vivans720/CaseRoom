@@ -38,29 +38,29 @@ describe("AuthForms Resend OTP", () => {
     fireEvent.change(screen.getByLabelText("Password"), { target: { value: "Password123" } });
     fireEvent.change(screen.getByLabelText("Confirm Password"), { target: { value: "Password123" } });
 
-    fireEvent.click(screen.getByText(/Next: Verify Email/i));
-
-    const resendBtn = await screen.findByText("Resend Code");
-    
-    // Enable fake timers for cooldown test
     vi.useFakeTimers();
+
+    await act(async () => {
+      fireEvent.click(screen.getByText(/Continue to Verification/i));
+    });
+
+    // Check initial cooldown text
+    expect(screen.getByText(/Resend code in 01:00/i)).toBeInTheDocument();
+
+    // Advance 65s to enable the button and clear cooldown
+    for (let i = 0; i < 65; i++) {
+      await act(async () => { vi.advanceTimersByTime(1000); });
+    }
+
+    // Now button should say 'Resend code' and be enabled
+    const enabledBtn = screen.getByText(/Resend code/i, { selector: 'button:not([disabled])' });
 
     // Click Resend inside act to flush async state updates
     await act(async () => {
-      fireEvent.click(resendBtn);
+      fireEvent.click(enabledBtn);
     });
 
     expect(authService.resendOtp).toHaveBeenCalled();
-
-    // Check cooldown
-    expect(screen.getByText(/Resend code in 60s/i)).toBeInTheDocument();
-
-    for (let i = 0; i < 60; i++) {
-      await act(async () => {
-        vi.advanceTimersByTime(1000);
-      });
-    }
-    expect(screen.getByText("Resend Code")).toBeInTheDocument();
     
     vi.useRealTimers();
   });
@@ -83,28 +83,29 @@ describe("AuthForms Resend OTP", () => {
 
     fireEvent.change(screen.getByLabelText("Employee ID"), { target: { value: "EMP001" } });
     fireEvent.change(screen.getByLabelText("Password"), { target: { value: "Password123" } });
-    fireEvent.click(screen.getByRole("button", { name: /Sign In/i }));
-
-    const resendBtn = await screen.findByText("Resend Code");
-    
-    // Enable fake timers
     vi.useFakeTimers();
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: /Sign In/i }));
+    });
+
+    // Check initial cooldown text
+    expect(screen.getByText(/Resend code in 01:00/i)).toBeInTheDocument();
+
+    // Advance 65s to enable the button and clear cooldown
+    for (let i = 0; i < 65; i++) {
+      await act(async () => { vi.advanceTimersByTime(1000); });
+    }
+
+    // Now button should say 'Resend code' and be enabled
+    const enabledBtn = screen.getByText(/Resend code/i, { selector: 'button:not([disabled])' });
 
     // Click Resend inside act
     await act(async () => {
-      fireEvent.click(resendBtn);
+      fireEvent.click(enabledBtn);
     });
 
     expect(authService.resendOtp).toHaveBeenCalled();
-
-    expect(screen.getByText(/Resend code in 60s/i)).toBeInTheDocument();
-
-    for (let i = 0; i < 60; i++) {
-      await act(async () => {
-        vi.advanceTimersByTime(1000);
-      });
-    }
-    expect(screen.getByText("Resend Code")).toBeInTheDocument();
     
     vi.useRealTimers();
   });

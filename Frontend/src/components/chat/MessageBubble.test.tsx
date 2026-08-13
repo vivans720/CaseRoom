@@ -3,6 +3,12 @@ import { describe, it, expect, vi } from "vitest";
 import { MessageBubble } from "./MessageBubble";
 import type { Message, User } from "../../types";
 
+vi.mock("../../services/annotationService", () => ({
+  annotationService: {
+    getAnnotations: vi.fn().mockResolvedValue([]),
+  }
+}));
+
 describe("MessageBubble", () => {
   const mockMessage: Message = {
     _id: "msg-1",

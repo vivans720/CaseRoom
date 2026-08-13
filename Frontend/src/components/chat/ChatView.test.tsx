@@ -7,6 +7,8 @@ import { useMessages } from "../../hooks/useMessages";
 import { usePresence } from "../../hooks/usePresence";
 import { useTypingIndicator } from "../../hooks/useTypingIndicator";
 import { useDashboardPanel } from "../../hooks/useDashboardPanel";
+import { useMeeting } from "../../hooks/useMeeting";
+import { getCaseParticipants } from "../../services/caseService";
 import { vi, Mock } from "vitest";
 
 type SocketListener = (...args: unknown[]) => void;
@@ -22,6 +24,10 @@ vi.mock("../../hooks/usePresence");
 vi.mock("../../hooks/useTypingIndicator");
 vi.mock("../../hooks/useDashboardPanel");
 vi.mock("../../hooks/useCaseSocket");
+vi.mock("../../hooks/useMeeting");
+vi.mock("../../services/caseService", () => ({
+  getCaseParticipants: vi.fn(),
+}));
 
 // Mocking children components to simplify integration test
 vi.mock("./ChatHeader", () => ({
@@ -50,6 +56,8 @@ describe("ChatView", () => {
     (useParams as Mock).mockReturnValue({ caseId: "case-123" });
     (useAuth as Mock).mockReturnValue({ user: { _id: "u1" } });
     (useSocket as Mock).mockReturnValue({ socket: mockSocket });
+    (useMeeting as Mock).mockReturnValue({ isInMeeting: false, viewMode: "pip", meetingCaseId: null });
+    (getCaseParticipants as Mock).mockResolvedValue([]);
     (useDashboardPanel as Mock).mockReturnValue({
       activePanel: null,
       togglePanel: vi.fn(),

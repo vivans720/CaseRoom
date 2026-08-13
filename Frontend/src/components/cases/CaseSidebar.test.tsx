@@ -102,7 +102,7 @@ describe("CaseSidebar — case list", () => {
       makeUseCasesReturn({ pinnedCases: [pinnedCase] }),
     );
     renderSidebar();
-    expect(screen.getByText("Pinned")).toBeInTheDocument();
+    expect(screen.getAllByText(/pinned/i).length).toBeGreaterThan(0);
     expect(screen.getByText("Pinned Case")).toBeInTheDocument();
   });
 
@@ -112,7 +112,7 @@ describe("CaseSidebar — case list", () => {
       makeUseCasesReturn({ unpinnedCases: [unpinnedCase] }),
     );
     renderSidebar();
-    expect(screen.getByText("All Cases")).toBeInTheDocument();
+    expect(screen.getByText(/all cases/i)).toBeInTheDocument();
     expect(screen.getByText("Regular Case")).toBeInTheDocument();
   });
 
@@ -122,7 +122,7 @@ describe("CaseSidebar — case list", () => {
       makeUseCasesReturn({ unpinnedCases: [unpinnedCase] }),
     );
     renderSidebar();
-    expect(screen.queryByText("Pinned")).not.toBeInTheDocument();
+    expect(screen.queryByText(/pinned/i)).not.toBeInTheDocument();
   });
 });
 

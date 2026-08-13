@@ -116,12 +116,7 @@ export const LoginForm = ({ onStepChange }: LoginFormProps): JSX.Element => {
     }
   }, [resendTimer])
 
-  // Auto-submit OTP when 6 digits entered
-  useEffect(() => {
-    if (step === "otp" && otpValue.length === 6 && !isSubmitting && !isVerified) {
-      handleOtpSubmit(otpValue)
-    }
-  }, [otpValue, step])
+
 
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     setIsCapsLock(e.getModifierState("CapsLock"))
@@ -316,10 +311,12 @@ export const LoginForm = ({ onStepChange }: LoginFormProps): JSX.Element => {
           {/* Custom Checkbox */}
           <div className="flex items-center gap-2.5 pt-0.5">
             <button
+              id="remember-me-checkbox"
               type="button"
               role="checkbox"
               aria-checked={rememberMe}
               onClick={() => setRememberMe((prev) => !prev)}
+              aria-label="Remember me on this device"
               className={`h-4 w-4 rounded-md border flex items-center justify-center cursor-pointer transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#6C4CF1]/30 ${
                 rememberMe
                   ? "bg-[#6C4CF1] border-[#6C4CF1] text-white shadow-2xs scale-[1.05]"
@@ -333,6 +330,7 @@ export const LoginForm = ({ onStepChange }: LoginFormProps): JSX.Element => {
               )}
             </button>
             <label 
+              htmlFor="remember-me-checkbox"
               onClick={() => setRememberMe((prev) => !prev)} 
               className="text-xs font-medium text-slate-600 cursor-pointer select-none hover:text-slate-900 transition-colors"
             >
@@ -423,6 +421,7 @@ export const LoginForm = ({ onStepChange }: LoginFormProps): JSX.Element => {
           type="submit"
           disabled={isSubmitting || isVerified}
           aria-busy={isSubmitting}
+          aria-label={isSubmitting ? (step === "credentials" ? "Signing in..." : "Verifying...") : (step === "credentials" ? "Sign In" : "Verify Code")}
           className="relative flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-[#5B4CF3] to-[#8B2EFF] px-4 py-3.5 text-xs font-bold text-white shadow-[0_14px_35px_rgba(91,76,243,0.4)] transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_20px_45px_rgba(91,76,243,0.55)] focus:outline-none focus:ring-4 focus:ring-[#6C4CF1]/25 active:translate-y-0 active:shadow-[0_8px_20px_rgba(91,76,243,0.3)] disabled:opacity-50 disabled:pointer-events-none"
         >
           {isSubmitting && (

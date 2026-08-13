@@ -56,6 +56,15 @@ const setupAuth = async (
     }),
   );
 
+  // Mock GET /cases/*/meeting/active
+  await page.route("**/api/v1/cases/*/meeting/active**", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ success: true, data: null }),
+    }),
+  );
+
   await page.goto("/");
   await page.evaluate(() => {
     localStorage.setItem("caseroom_auth_token", "mock-jwt-token");
@@ -128,8 +137,7 @@ test.describe("Case Settings", () => {
 
     // Attempt to pin the extra case (should trigger error)
     const pinBtn = page
-      .getByText("Extra Case")
-      .locator("..") // parent anchor
+      .getByRole("link", { name: /Extra Case/i })
       .locator("button[aria-label='Pin case']");
     await pinBtn.click({ force: true });
 

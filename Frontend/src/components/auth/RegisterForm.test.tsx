@@ -68,7 +68,7 @@ describe("RegisterForm", () => {
     expect(screen.getByLabelText(/confirm password/i)).toBeInTheDocument()
     // Step 1 button triggers OTP send
     expect(
-      screen.getByRole("button", { name: /next: verify email/i }),
+      screen.getByRole("button", { name: /continue to verification/i }),
     ).toBeInTheDocument()
   })
 
@@ -78,11 +78,11 @@ describe("RegisterForm", () => {
     await user.type(screen.getByLabelText(/employee id/i), "EMP001")
     await user.type(screen.getByLabelText(/full name/i), "A")
     await user.click(
-      screen.getByRole("button", { name: /next: verify email/i }),
+      screen.getByRole("button", { name: /continue to verification/i }),
     )
 
     expect(
-      screen.getByText(/name must be at least 2 characters/i),
+      screen.getByText(/min 2 chars/i),
     ).toBeInTheDocument()
     expect(mockedSendRegisterOtp).not.toHaveBeenCalled()
   })
@@ -94,11 +94,11 @@ describe("RegisterForm", () => {
     await user.type(screen.getByLabelText(/full name/i), "John Doe")
     await user.type(screen.getByLabelText(/email/i), "not-an-email")
     await user.click(
-      screen.getByRole("button", { name: /next: verify email/i }),
+      screen.getByRole("button", { name: /continue to verification/i }),
     )
 
     expect(
-      screen.getByText(/invalid email address format/i),
+      screen.getByText(/invalid email format/i),
     ).toBeInTheDocument()
   })
 
@@ -110,11 +110,11 @@ describe("RegisterForm", () => {
     await user.type(screen.getByLabelText(/email/i), "john@test.com")
     await user.type(screen.getByLabelText(/phone/i), "123")
     await user.click(
-      screen.getByRole("button", { name: /next: verify email/i }),
+      screen.getByRole("button", { name: /continue to verification/i }),
     )
 
     expect(
-      screen.getByText(/phone number must be valid/i),
+      screen.getByText(/10 to 15 digits/i),
     ).toBeInTheDocument()
   })
 
@@ -127,11 +127,11 @@ describe("RegisterForm", () => {
     await user.type(screen.getByLabelText(/phone/i), "1234567890")
     await user.type(screen.getByLabelText("Password"), "weak")
     await user.click(
-      screen.getByRole("button", { name: /next: verify email/i }),
+      screen.getByRole("button", { name: /continue to verification/i }),
     )
 
     expect(
-      screen.getByText(/password must be at least 8 characters/i),
+      screen.getByText(/min 8 chars/i),
     ).toBeInTheDocument()
   })
 
@@ -148,10 +148,10 @@ describe("RegisterForm", () => {
       "Different1",
     )
     await user.click(
-      screen.getByRole("button", { name: /next: verify email/i }),
+      screen.getByRole("button", { name: /continue to verification/i }),
     )
 
-    expect(screen.getByText(/passwords do not match/i)).toBeInTheDocument()
+    expect(screen.getByText(/passwords mismatch/i)).toBeInTheDocument()
   })
 
   it("calls sendRegisterOtp with correct data on valid step-1 submit", async () => {
@@ -160,7 +160,7 @@ describe("RegisterForm", () => {
 
     await fillValidForm(user)
     await user.click(
-      screen.getByRole("button", { name: /next: verify email/i }),
+      screen.getByRole("button", { name: /continue to verification/i }),
     )
 
     await waitFor(() => {
@@ -187,7 +187,7 @@ describe("RegisterForm", () => {
 
     await fillValidForm(user)
     await user.click(
-      screen.getByRole("button", { name: /next: verify email/i }),
+      screen.getByRole("button", { name: /continue to verification/i }),
     )
 
     expect(

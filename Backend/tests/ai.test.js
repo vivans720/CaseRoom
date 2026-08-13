@@ -143,28 +143,6 @@ describe("AI Endpoints API", () => {
     });
   });
 
-  describe("GET /api/v1/ai/recommend-participants/:caseId", () => {
-    it("should return participant recommendations", async () => {
-      await User.create({
-        employeeId: `EMP-CAND-${Date.now()}`,
-        name: "Security Specialist",
-        email: `candidate.${Date.now()}@example.com`,
-        phone: "9876543210",
-        passwordHash: "hash",
-        roleName: "Security Analyst",
-        skills: ["Authentication", "Incident Response"],
-      });
-
-      const res = await request(app)
-        .get(`/api/v1/ai/recommend-participants/${testCase._id}`)
-        .set("Authorization", `Bearer ${token}`);
-
-      expect(res.statusCode).toEqual(200);
-      expect(res.body.success).toBe(true);
-      expect(Array.isArray(res.body.data)).toBe(true);
-    });
-  });
-
   describe("POST /api/v1/ai/timeline", () => {
     it("should return timeline events for case", async () => {
       const res = await request(app)

@@ -103,7 +103,7 @@ describe("TaskPanel", () => {
     render(<TaskPanel caseId="case-1" currentUserId="user-1" />);
 
     await waitFor(() => {
-      expect(screen.getByText("No tasks found")).toBeInTheDocument();
+      expect(screen.getByText("No action items found")).toBeInTheDocument();
     });
 
     const newBtn = screen.getByRole("button", { name: /new/i });

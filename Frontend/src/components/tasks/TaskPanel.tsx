@@ -206,10 +206,11 @@ export const TaskPanel: React.FC<TaskPanelProps> = ({
             </button>
             <button
               onClick={() => setIsCreateOpen(true)}
+              title="Create Task"
               className="flex items-center gap-1 px-3 py-1.5 bg-gradient-to-r from-[#5B4CF3] to-[#8B2EFF] text-white text-xs font-bold rounded-xl shadow-xs hover:scale-105 active:scale-95 transition-all duration-200 focus:outline-none"
             >
               <Plus className="w-3.5 h-3.5" />
-              <span>New</span>
+              <span>New Task</span>
             </button>
             {onClose && (
               <button

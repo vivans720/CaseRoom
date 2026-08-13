@@ -264,14 +264,61 @@ docker-compose up --build
 
 ## 🧪 Testing
 
+CaseRoom uses a professional four-layer testing stack:
+
+| Layer | Tools | Scope |
+|-------|-------|-------|
+| **Backend Integration** | Jest + Supertest + mongodb-memory-server | API routes, middleware, RBAC, business logic |
+| **Frontend Unit/Component** | Vitest + React Testing Library | Components, hooks, contexts, services |
+| **End-to-End** | Playwright | Full user journeys with mocked APIs |
+| **Continuous Integration** | GitHub Actions | Automated pipeline on push/PR |
+
+### Running Tests Locally
+
 ```bash
-# Run Backend API integration tests (Jest)
+# Backend integration tests (Jest + Supertest)
 cd Backend
 npm test
 
-# Run Frontend unit & component tests (Vitest)
+# Frontend unit & component tests (Vitest + React Testing Library)
 cd Frontend
-npm test
+npm test                  # single run
+npm run test:watch        # watch mode
+npm run test:coverage     # with coverage report
+
+# End-to-end tests (Playwright)
+cd Frontend
+npx playwright install chromium   # first time only
+npm run test:e2e                  # headless
+npm run test:e2e:ui               # interactive UI mode
 ```
+
+### Local Setup for E2E Tests
+
+Playwright E2E tests mock all API calls via route interception, so **no running backend is required**. The Vite dev server is started automatically by Playwright's `webServer` config.
+
+To run manually:
+1. Ensure frontend dependencies are installed: `cd Frontend && npm install`
+2. Install Playwright browsers: `npx playwright install chromium`
+3. Run: `npm run test:e2e`
+
+### Continuous Integration (GitHub Actions)
+
+The CI pipeline (`.github/workflows/ci.yml`) runs automatically on pushes and pull requests to `main`. It executes four parallel jobs:
+
+1. **Backend Tests** — Runs Jest + Supertest suite with in-memory MongoDB
+2. **Frontend Tests** — Runs Vitest + RTL suite (367+ tests)
+3. **Frontend Build** — Verifies TypeScript compilation and Vite production build
+4. **E2E Tests** — Runs Playwright tests with Chromium, uploads report on failure
+
+No real API keys or external services are needed in CI — backend tests use `mongodb-memory-server` and E2E tests mock all API endpoints.
+
+### Test Summary
+
+| Suite | Files | Tests |
+|-------|-------|-------|
+| Backend (Jest) | 16+ | Integration tests across auth, cases, messages, tasks, AI, sockets, search |
+| Frontend (Vitest) | 63+ | 367+ unit/component tests |
+| E2E (Playwright) | 9 | Auth flows, dashboard, case settings, messaging, tasks, AI panel, RBAC |
 
 ---
