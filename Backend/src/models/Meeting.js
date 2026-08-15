@@ -20,6 +20,31 @@ const meetingParticipantSchema = new mongoose.Schema(
   { _id: false },
 );
 
+const transcriptEntrySchema = new mongoose.Schema(
+  {
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    senderName: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    text: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    timestamp: {
+      type: Date,
+      default: Date.now,
+    },
+  },
+  { _id: false },
+);
+
 const meetingSchema = new mongoose.Schema(
   {
     caseId: {
@@ -55,6 +80,7 @@ const meetingSchema = new mongoose.Schema(
       trim: true,
       default: "",
     },
+    transcriptEntries: [transcriptEntrySchema],
     participants: [meetingParticipantSchema],
   },
   {

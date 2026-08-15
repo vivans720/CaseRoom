@@ -85,10 +85,10 @@ const getActiveParticipantCount = (meeting) => {
 };
 
 /**
- * End a meeting.
+ * End a meeting and auto-enqueue AI RAG vector indexing if transcript exists.
  */
 const endMeeting = async (meetingId) => {
-  return Meeting.findByIdAndUpdate(
+  const meeting = await Meeting.findByIdAndUpdate(
     meetingId,
     {
       status: "ended",
@@ -96,6 +96,62 @@ const endMeeting = async (meetingId) => {
     },
     { returnDocument: "after" },
   );
+
+  if (
+    meeting &&
+    ((meeting.transcript && meeting.transcript.trim().length > 0) ||
+      (meeting.transcriptEntries && meeting.transcriptEntries.length > 0))
+  ) {
+    try {
+      await enqueue({
+        caseId: meeting.caseId,
+        sourceType: "meeting",
+        sourceId: meeting._id,
+        action: "upsert",
+      });
+    } catch (error) {
+      console.warn("[AI indexing] Could not queue meeting on end:", error.message);
+    }
+  }
+
+  return meeting;
+};
+
+/**
+ * Append a real-time transcript chunk to structured entries and sync transcript text.
+ */
+const appendTranscriptChunk = async (caseId, meetingId, userId, senderName, text, timestamp = new Date()) => {
+  const meeting = await Meeting.findOne({ _id: meetingId, caseId, status: "active" });
+  if (!meeting) return null;
+
+  const dateObj = timestamp instanceof Date ? timestamp : new Date(timestamp);
+  const hours = String(dateObj.getHours()).padStart(2, "0");
+  const minutes = String(dateObj.getMinutes()).padStart(2, "0");
+  const seconds = String(dateObj.getSeconds()).padStart(2, "0");
+  const timeStr = `${hours}:${minutes}:${seconds}`;
+
+  const cleanText = String(text || "").trim();
+  if (!cleanText) return { meeting, entry: null };
+
+  const cleanName = String(senderName || "Participant").trim();
+
+  const entry = {
+    userId,
+    senderName: cleanName,
+    text: cleanText,
+    timestamp: dateObj,
+  };
+
+  if (!Array.isArray(meeting.transcriptEntries)) {
+    meeting.transcriptEntries = [];
+  }
+  meeting.transcriptEntries.push(entry);
+
+  const formattedLine = `${cleanName} (${timeStr}): ${cleanText}`;
+  meeting.transcript = meeting.transcript ? `${meeting.transcript}\n${formattedLine}` : formattedLine;
+
+  await meeting.save();
+  return { meeting, entry, formattedLine };
 };
 
 /**
@@ -141,6 +197,7 @@ module.exports = {
   removeParticipant,
   getActiveParticipantCount,
   endMeeting,
+  appendTranscriptChunk,
   toggleLockMeeting,
   getMeetingHistory,
   updateTranscript,

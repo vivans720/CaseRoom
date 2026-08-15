@@ -1,4 +1,4 @@
-import type { JSX } from "react";
+import React, { type JSX } from "react";
 import { VideoTile } from "./VideoTile";
 import type { MeetingPeer, PeerMediaState } from "../../types";
 
@@ -16,8 +16,9 @@ interface VideoGridProps {
 
 /**
  * Responsive video grid layout with Screen Share & Pinned Spotlight mode.
+ * Memoized to prevent expensive video element re-renders during speech recognition.
  */
-export const VideoGrid = ({
+export const VideoGrid = React.memo(({
   localStream,
   localMediaState,
   videoAvailable,
@@ -145,4 +146,7 @@ export const VideoGrid = ({
       ))}
     </div>
   );
-};
+});
+
+VideoGrid.displayName = "VideoGrid";
+

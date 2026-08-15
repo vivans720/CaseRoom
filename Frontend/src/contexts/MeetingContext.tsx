@@ -10,6 +10,7 @@ import {
 } from "react";
 import { useSocketContext } from "./SocketContext";
 import { useAuth } from "../hooks/useAuth";
+import { useSpeechRecognition } from "../hooks/useSpeechRecognition";
 import { WebRTCManager } from "../services/webrtcManager";
 import type {
   MeetingPeer,
@@ -19,6 +20,14 @@ import type {
 } from "../types";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
+
+export interface LiveSubtitle {
+  userId: string;
+  senderName: string;
+  text: string;
+  timestamp: string;
+  isFinal?: boolean;
+}
 
 interface MeetingJoinedPayload {
   meetingId: string;
@@ -50,6 +59,11 @@ interface MeetingContextValue {
   isLocked: boolean;
   isAudioOnly: boolean;
   durationSeconds: number;
+  isCaptionsEnabled: boolean;
+  isTranscribing: boolean;
+  isSpeechRecognitionSupported: boolean;
+  liveSubtitles: LiveSubtitle[];
+  activeInterimSubtitle: LiveSubtitle | null;
 
   // Actions
   joinMeeting: (caseId: string) => Promise<void>;
@@ -65,6 +79,7 @@ interface MeetingContextValue {
   setPinnedUserId: (userId: string | null) => void;
   setLayoutMode: (mode: "grid" | "speaker") => void;
   toggleAudioOnly: () => void;
+  toggleCaptions: () => void;
   setViewMode: (mode: MeetingViewMode) => void;
   minimize: () => void;
   expand: () => void;
@@ -145,6 +160,9 @@ export const MeetingProvider = ({
   const [isLocked, setIsLocked] = useState(false);
   const [isAudioOnly, setIsAudioOnly] = useState(false);
   const [durationSeconds, setDurationSeconds] = useState(0);
+  const [isCaptionsEnabled, setIsCaptionsEnabled] = useState(false);
+  const [liveSubtitles, setLiveSubtitles] = useState<LiveSubtitle[]>([]);
+  const [activeInterimSubtitle, setActiveInterimSubtitle] = useState<LiveSubtitle | null>(null);
 
   // Live duration counter
   useEffect(() => {
@@ -163,6 +181,110 @@ export const MeetingProvider = ({
   const localStreamRef = useRef<MediaStream | null>(null);
   const caseIdRef = useRef<string | null>(null);
   const cameraTrackRef = useRef<MediaStreamTrack | null>(null);
+  const lastInterimEmitRef = useRef<number>(0);
+
+  // ─── Web Speech Recognition Hook ──────────────────────────────────────────
+
+  const {
+    isSupported: isSpeechRecognitionSupported,
+    isListening: isTranscribing,
+    startListening,
+    stopListening,
+  } = useSpeechRecognition({
+    onInterimTranscript: (interimText) => {
+      if (!user) return;
+      const clean = interimText.trim();
+      if (!clean) return;
+
+      console.debug("[CAPTION] React state updated (local interim):", clean);
+
+      // 1. Instant 0ms local preview
+      const payload: LiveSubtitle = {
+        userId: user._id,
+        senderName: user.name || "You",
+        text: clean,
+        timestamp: new Date().toISOString(),
+        isFinal: false,
+      };
+      setActiveInterimSubtitle(payload);
+
+      // 2. Throttled broadcast to peers (every 80ms) to stream in real-time
+      const now = performance.now();
+      if (socket && caseIdRef.current && now - lastInterimEmitRef.current > 80) {
+        lastInterimEmitRef.current = now;
+        socket.emit("meeting:transcript-chunk", {
+          caseId: caseIdRef.current,
+          text: clean,
+          isFinal: false,
+        });
+      }
+    },
+    onFinalTranscript: (finalText) => {
+      if (!user) return;
+      const clean = finalText.trim();
+      if (!clean) return;
+
+      console.debug("[CAPTION] React state updated (local final commit):", clean);
+
+      const finalPayload: LiveSubtitle = {
+        userId: user._id,
+        senderName: user.name || "You",
+        text: clean,
+        timestamp: new Date().toISOString(),
+        isFinal: true,
+      };
+
+      // Clear interim for local user and commit to persistent list
+      setActiveInterimSubtitle((current) => (current?.userId === user._id ? null : current));
+      setLiveSubtitles((prev) => [...prev, finalPayload].slice(-4));
+
+      // Auto-dismiss committed subtitle after 2.6s (1.8s visible + 0.7s fade-out)
+      setTimeout(() => {
+        setLiveSubtitles((prev) =>
+          prev.filter(
+            (item) =>
+              !(
+                item.userId === finalPayload.userId &&
+                item.timestamp === finalPayload.timestamp &&
+                item.text === finalPayload.text
+              ),
+          ),
+        );
+      }, 2600);
+
+      // Emit final chunk to server (persists to MongoDB & broadcasts final commit)
+      if (socket && caseIdRef.current) {
+        socket.emit("meeting:transcript-chunk", {
+          caseId: caseIdRef.current,
+          text: clean,
+          isFinal: true,
+        });
+      }
+    },
+  });
+
+  const toggleCaptions = useCallback(() => {
+    setIsCaptionsEnabled((prev) => !prev);
+  }, []);
+
+  // Speech-to-text ALWAYS runs in the background for RAG & meeting recording whenever mic is unmuted
+  useEffect(() => {
+    if (
+      isInMeeting &&
+      mediaState.audio &&
+      isSpeechRecognitionSupported
+    ) {
+      startListening();
+    } else {
+      stopListening();
+    }
+  }, [
+    isInMeeting,
+    mediaState.audio,
+    isSpeechRecognitionSupported,
+    startListening,
+    stopListening,
+  ]);
 
   // Keep refs in sync
   useEffect(() => {
@@ -176,6 +298,7 @@ export const MeetingProvider = ({
   // ─── Cleanup function ────────────────────────────────────────────────────
 
   const cleanup = useCallback(() => {
+    stopListening();
     // Stop local tracks
     if (localStreamRef.current) {
       localStreamRef.current.getTracks().forEach((t) => t.stop());
@@ -205,8 +328,11 @@ export const MeetingProvider = ({
     setActiveSpeakerId(null);
     setPinnedUserId(null);
     setIsHandRaised(false);
+    setIsCaptionsEnabled(false);
+    setLiveSubtitles([]);
+    setActiveInterimSubtitle(null);
     cameraTrackRef.current = null;
-  }, [screenStream]);
+  }, [screenStream, stopListening]);
 
   // ─── Join Meeting ─────────────────────────────────────────────────────────
 
@@ -707,7 +833,36 @@ export const MeetingProvider = ({
       setIsLocked(data.isLocked);
     };
 
-    // Error from server
+    const onTranscriptChunk = (data: LiveSubtitle) => {
+      // If chunk is from local user, we already rendered it with 0ms latency in local React state
+      if (user && data.userId === user._id) return;
+
+      if (!data.isFinal) {
+        // Stream interim text for remote speaker immediately
+        console.debug("[CAPTION] remote interim received:", data.text);
+        setActiveInterimSubtitle(data);
+      } else {
+        // Commit final text for remote speaker
+        console.debug("[CAPTION] remote final commit received:", data.text);
+        setActiveInterimSubtitle((current) => (current?.userId === data.userId ? null : current));
+        setLiveSubtitles((prev) => [...prev, data].slice(-4));
+
+        // Auto-dismiss committed subtitle after 2.6s (1.8s visible + 0.7s fade-out)
+        setTimeout(() => {
+          setLiveSubtitles((prev) =>
+            prev.filter(
+              (item) =>
+                !(
+                  item.userId === data.userId &&
+                  item.timestamp === data.timestamp &&
+                  item.text === data.text
+                ),
+            ),
+          );
+        }, 2600);
+      }
+    };
+
     const onError = (data: { message: string }) => {
       setMeetingError(data.message);
     };
@@ -726,6 +881,7 @@ export const MeetingProvider = ({
     socket.on("meeting:force-mute", onForceMute);
     socket.on("meeting:user-kicked", onUserKicked);
     socket.on("meeting:lock-changed", onLockChanged);
+    socket.on("meeting:transcript-chunk", onTranscriptChunk);
     socket.on("meeting:error", onError);
 
     return () => {
@@ -743,6 +899,7 @@ export const MeetingProvider = ({
       socket.off("meeting:force-mute", onForceMute);
       socket.off("meeting:user-kicked", onUserKicked);
       socket.off("meeting:lock-changed", onLockChanged);
+      socket.off("meeting:transcript-chunk", onTranscriptChunk);
       socket.off("meeting:error", onError);
     };
   }, [socket, cleanup, user]);
@@ -767,6 +924,11 @@ export const MeetingProvider = ({
     isLocked,
     isAudioOnly,
     durationSeconds,
+    isCaptionsEnabled,
+    isTranscribing,
+    isSpeechRecognitionSupported,
+    liveSubtitles,
+    activeInterimSubtitle,
     joinMeeting,
     leaveMeeting,
     toggleCamera,
@@ -780,6 +942,7 @@ export const MeetingProvider = ({
     setPinnedUserId,
     setLayoutMode,
     toggleAudioOnly,
+    toggleCaptions,
     setViewMode,
     minimize,
     expand,

@@ -5,6 +5,7 @@ import { useKeyboardShortcuts } from "../../hooks/useKeyboardShortcuts";
 import { VideoGrid } from "./VideoGrid";
 import { MeetingControls } from "./MeetingControls";
 import { ParticipantListPanel } from "./ParticipantListPanel";
+import { LiveCaptionsOverlay } from "./LiveCaptionsOverlay";
 import "./meeting.css";
 
 const formatDuration = (totalSeconds: number): string => {
@@ -31,10 +32,16 @@ export const MeetingRoom = (): JSX.Element => {
     isLocked,
     isAudioOnly,
     durationSeconds,
+    isCaptionsEnabled,
+    isTranscribing,
+    isSpeechRecognitionSupported,
+    liveSubtitles,
+    activeInterimSubtitle,
     toggleCamera,
     toggleMic,
     toggleRaiseHand,
     toggleLock,
+    toggleCaptions,
     muteAll,
     removeParticipant,
     startScreenShare,
@@ -85,6 +92,30 @@ export const MeetingRoom = (): JSX.Element => {
             <span>🔒 Locked</span>
           </div>
         )}
+
+        {/* Transcribing mic status badge */}
+        {isCaptionsEnabled && (
+          <div
+            className={`px-3 py-1.5 rounded-full backdrop-blur-md border text-xs font-bold flex items-center gap-1.5 shadow-lg transition-all ${
+              isTranscribing && mediaState.audio
+                ? "bg-indigo-500/20 border-indigo-500/40 text-indigo-300"
+                : "bg-slate-900/60 border-slate-700 text-slate-400"
+            }`}
+          >
+            <span
+              className={`w-2 h-2 rounded-full ${
+                isTranscribing && mediaState.audio
+                  ? "bg-indigo-400 animate-ping"
+                  : "bg-slate-500"
+              }`}
+            />
+            <span>
+              {isTranscribing && mediaState.audio
+                ? "Transcribing Mic"
+                : "Captions ON (Mic Muted)"}
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Video grid */}
@@ -101,6 +132,14 @@ export const MeetingRoom = (): JSX.Element => {
           currentUserId={user?._id ?? ""}
         />
       </div>
+
+      {/* Floating Live Subtitles Banner — only shown when user enables captions */}
+      {isCaptionsEnabled && (
+        <LiveCaptionsOverlay
+          liveSubtitles={liveSubtitles}
+          activeInterimSubtitle={activeInterimSubtitle}
+        />
+      )}
 
       {/* Slide-over Participant List Panel */}
       <ParticipantListPanel
@@ -129,6 +168,9 @@ export const MeetingRoom = (): JSX.Element => {
         isParticipantsOpen={isParticipantsOpen}
         layoutMode={layoutMode}
         isAudioOnly={isAudioOnly}
+        isCaptionsEnabled={isCaptionsEnabled}
+        isTranscribing={isTranscribing}
+        isSpeechRecognitionSupported={isSpeechRecognitionSupported}
         onToggleMic={toggleMic}
         onToggleCamera={toggleCamera}
         onToggleRaiseHand={toggleRaiseHand}
@@ -137,6 +179,7 @@ export const MeetingRoom = (): JSX.Element => {
           setLayoutMode(layoutMode === "grid" ? "speaker" : "grid")
         }
         onToggleAudioOnly={toggleAudioOnly}
+        onToggleCaptions={toggleCaptions}
         onStartScreenShare={startScreenShare}
         onStopScreenShare={stopScreenShare}
         onMinimize={minimize}

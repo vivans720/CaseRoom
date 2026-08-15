@@ -9,17 +9,37 @@ interface MeetingControlsProps {
   isParticipantsOpen?: boolean;
   layoutMode?: "grid" | "speaker";
   isAudioOnly?: boolean;
+  isCaptionsEnabled?: boolean;
+  isTranscribing?: boolean;
+  isSpeechRecognitionSupported?: boolean;
   onToggleMic: () => void;
   onToggleCamera: () => void;
   onToggleRaiseHand?: () => void;
   onToggleParticipants?: () => void;
   onToggleLayoutMode?: () => void;
   onToggleAudioOnly?: () => void;
+  onToggleCaptions?: () => void;
   onStartScreenShare: () => void;
   onStopScreenShare: () => void;
   onMinimize: () => void;
   onLeave: () => void;
 }
+
+const CaptionsIcon = (): JSX.Element => (
+  <svg
+    className="h-5 w-5"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth={2}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <rect x="2" y="4" width="20" height="16" rx="2" />
+    <path d="M7 15h3a2 2 0 0 0 2-2v-2a2 2 0 0 0-2-2H7" />
+    <path d="M15 15h3a2 2 0 0 0 2-2v-2a2 2 0 0 0-2-2h-3" />
+  </svg>
+);
 
 const MicIcon = (): JSX.Element => (
   <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
@@ -95,12 +115,16 @@ export const MeetingControls = ({
   isParticipantsOpen,
   layoutMode = "grid",
   isAudioOnly = false,
+  isCaptionsEnabled = false,
+  isTranscribing = false,
+  isSpeechRecognitionSupported = false,
   onToggleMic,
   onToggleCamera,
   onToggleRaiseHand,
   onToggleParticipants,
   onToggleLayoutMode,
   onToggleAudioOnly,
+  onToggleCaptions,
   onStartScreenShare,
   onStopScreenShare,
   onMinimize,
@@ -186,6 +210,26 @@ export const MeetingControls = ({
           title={isAudioOnly ? "Disable audio-only mode" : "Audio-only mode (saves data)"}
         >
           🎧
+        </button>
+      )}
+
+      {/* Live Captions (Speech-to-Text) Toggle */}
+      {onToggleCaptions && isSpeechRecognitionSupported && (
+        <button
+          type="button"
+          onClick={onToggleCaptions}
+          className={`meeting-controls__btn ${
+            isCaptionsEnabled
+              ? "bg-indigo-600 text-white shadow-lg shadow-indigo-500/30 ring-2 ring-indigo-400"
+              : "meeting-controls__btn--on text-slate-300 hover:text-white"
+          }`}
+          title={
+            isCaptionsEnabled
+              ? "Hide Live Captions on screen"
+              : "Show Live Captions on screen"
+          }
+        >
+          <CaptionsIcon />
         </button>
       )}
 

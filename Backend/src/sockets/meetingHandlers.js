@@ -385,6 +385,76 @@ const handleLockToggle = (io, socket) => async ({ caseId }) => {
   io.to(room).emit("meeting:lock-changed", { isLocked: updated.isLocked });
 };
 
+// ─── Real-Time Speech-to-Text Transcript Handler ─────────────────────────────
+
+const handleMeetingTranscriptChunk =
+  (io, socket) =>
+  async ({ caseId, text, isFinal = true }) => {
+    try {
+      if (!caseId || !text || !String(text).trim()) return;
+      if (!socket.user || !socket.user._id) return;
+
+      const cleanText = String(text).trim();
+      if (cleanText.length > 2000) return; // Prevent excessive chunk payloads
+
+      // 1. Verify case exists and user is an authorized participant
+      const caseDoc = await Case.findById(caseId);
+      if (!caseDoc || !isParticipant(caseDoc, socket.user._id)) {
+        return socket.emit("meeting:error", {
+          message: "You are not an authorized participant in this case",
+        });
+      }
+
+      // 2. Verify active meeting exists for this case
+      const activeMeeting = await meetingService.getActiveMeeting(caseId);
+      if (!activeMeeting) {
+        return socket.emit("meeting:error", {
+          message: "No active meeting found for this case",
+        });
+      }
+
+      // 3. Verify user is currently an active, un-left participant in this meeting
+      const isMeetingParticipant = activeMeeting.participants.some(
+        (p) =>
+          p.user &&
+          (p.user._id || p.user).toString() === socket.user._id.toString() &&
+          !p.leftAt,
+      );
+
+      if (!isMeetingParticipant) {
+        return socket.emit("meeting:error", {
+          message: "You are not an active participant in this meeting",
+        });
+      }
+
+      const now = new Date();
+
+      // 4. Atomically persist chunk to DB only when phrase is finalized
+      if (isFinal) {
+        await meetingService.appendTranscriptChunk(
+          caseId,
+          activeMeeting._id,
+          socket.user._id,
+          socket.user.name,
+          cleanText,
+          now,
+        );
+      }
+
+      // 5. Broadcast transcript chunk to all participants in the meeting room
+      const room = getMeetingRoom(caseId);
+      io.to(room).emit("meeting:transcript-chunk", {
+        userId: socket.user._id.toString(),
+        senderName: socket.user.name,
+        text: cleanText,
+        timestamp: now.toISOString(),
+        isFinal: Boolean(isFinal),
+      });
+    } catch (err) {
+      console.error("[Meeting] Error handling transcript chunk:", err);
+    }
+  };
+
 // ─── Disconnect Handler ──────────────────────────────────────────────────────
 
 /**
@@ -410,6 +480,7 @@ const registerMeetingHandlers = (io, socket) => {
   socket.on("meeting:host-mute-all", handleHostMuteAll(io, socket));
   socket.on("meeting:host-remove-user", handleHostRemoveUser(io, socket));
   socket.on("meeting:lock-toggle", handleLockToggle(io, socket));
+  socket.on("meeting:transcript-chunk", handleMeetingTranscriptChunk(io, socket));
   socket.on("meeting:leave", handleMeetingLeave(io, socket));
 };
 
