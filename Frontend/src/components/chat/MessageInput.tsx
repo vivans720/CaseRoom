@@ -475,11 +475,11 @@ export const MessageInput = ({
         </div>
       )}
 
-      <div className="px-2 sm:px-4 py-2 sm:py-3 flex items-end gap-1.5 sm:gap-3 relative">
+      <div className="px-3 sm:px-4 py-2 sm:py-3 relative">
         {isEmojiPickerOpen && (
           <div
             ref={pickerContainerRef}
-            className="absolute bottom-14 left-0 z-50 shadow-lg rounded-xl border border-border bg-white overflow-hidden transition duration-200 opacity-100 translate-y-0"
+            className="absolute bottom-full left-4 mb-2 z-50 shadow-2xl rounded-2xl border border-slate-200 bg-white overflow-hidden transition duration-200 opacity-100 translate-y-0"
             style={{
               width: EMOJI_PICKER_MOBILE_WIDTH,
               maxWidth: `calc(100vw - 2rem)`,
@@ -503,56 +503,115 @@ export const MessageInput = ({
           </div>
         )}
 
-        <button
-          ref={emojiButtonRef}
-          type="button"
-          onClick={() => setIsEmojiPickerOpen((prev) => !prev)}
-          className="p-2 rounded-full hover:bg-surface-hover transition text-text-secondary shrink-0"
-          aria-label="Open emoji picker"
-        >
-          <Smile size={20} />
-        </button>
+        {/* Unified Input Card Container */}
+        <div className="group relative flex flex-col w-full rounded-2xl border border-slate-200/90 bg-slate-50/70 focus-within:bg-white focus-within:border-[#5B4CF3] focus-within:ring-4 focus-within:ring-[#5B4CF3]/12 transition-all duration-200 shadow-2xs">
+          {/* Main Textarea */}
+          <textarea
+            ref={textareaRef}
+            id="message-input"
+            value={content}
+            onChange={handleChange}
+            onKeyDown={handleKeyDown}
+            disabled={isUploading}
+            placeholder={
+              selectedFile
+                ? "Add a caption..."
+                : "Type a message or @ to mention..."
+            }
+            rows={1}
+            className="
+              w-full resize-none overflow-y-auto bg-transparent
+              px-4 pt-3 pb-2 text-sm text-[#111827] min-h-[44px]
+              placeholder:text-[#94A3B8] placeholder:font-normal
+              focus:outline-none disabled:opacity-60
+            "
+            style={{
+              lineHeight: `${LINE_HEIGHT_PX}px`,
+              maxHeight: `${MAX_ROWS * LINE_HEIGHT_PX}px`,
+            }}
+            aria-label="Message input"
+          />
 
-        <FileUploadButton
-          onFileSelect={(file) => {
-            setError(null);
-            setSelectedFile(file);
-          }}
-          onError={(msg) => setError(msg)}
-          disabled={isUploading}
-        />
+          {/* Integrated Toolbar Row */}
+          <div className="flex items-center justify-between px-3 pb-2.5 pt-1">
+            {/* Left Action Buttons */}
+            <div className="flex items-center gap-0.5">
+              <button
+                ref={emojiButtonRef}
+                type="button"
+                onClick={() => setIsEmojiPickerOpen((prev) => !prev)}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-slate-100 transition-colors shrink-0"
+                title="Add emoji"
+                aria-label="Open emoji picker"
+              >
+                <Smile size={18} />
+              </button>
 
-        <textarea
-          ref={textareaRef}
-          id="message-input"
-          value={content}
-          onChange={handleChange}
-          onKeyDown={handleKeyDown}
-          disabled={isUploading}
-          placeholder={
-            selectedFile
-              ? "Add a caption..."
-              : "Type a message..."
-          }
-          rows={1}
-          className="
-            flex-1 resize-none overflow-y-auto
-            bg-slate-50/70 border border-slate-200/90 rounded-2xl
-            px-3.5 py-2.5 sm:py-3.5 text-sm text-[#111827] min-h-[46px] sm:min-h-[56px]
-            placeholder:text-[#94A3B8] placeholder:font-normal
-            focus:outline-none focus:border-[#6C4CF1] focus:bg-white focus:ring-4 focus:ring-[#6C4CF1]/12
-            transition-all duration-[180ms] ease-in-out disabled:opacity-60 disabled:bg-slate-100
-          "
-          style={{
-            lineHeight: `${LINE_HEIGHT_PX}px`,
-            maxHeight: `${MAX_ROWS * LINE_HEIGHT_PX}px`,
-          }}
-          aria-label="Message input"
-        />
+              <button
+                type="button"
+                onClick={() => {
+                  const el = textareaRef.current;
+                  if (!el) return;
+                  const start = el.selectionStart ?? content.length;
+                  const nextValue = `${content.slice(0, start)}@${content.slice(start)}`;
+                  setContent(nextValue);
+                  setActiveMention(resolveMentionQuery(nextValue, start + 1));
+                  requestAnimationFrame(() => {
+                    el.focus();
+                    el.setSelectionRange(start + 1, start + 1);
+                  });
+                }}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-slate-100 transition-colors font-extrabold text-xs shrink-0 leading-none"
+                title="Mention a participant (@)"
+              >
+                @
+              </button>
+
+              <FileUploadButton
+                onFileSelect={(file) => {
+                  setError(null);
+                  setSelectedFile(file);
+                }}
+                onError={(msg) => setError(msg)}
+                disabled={isUploading}
+              />
+            </div>
+
+            {/* Right Action & Send Button */}
+            <div className="flex items-center gap-2">
+              <span className="hidden sm:inline-block text-[11px] font-medium text-slate-400 select-none">
+                <kbd className="font-sans px-1 py-0.5 rounded bg-slate-200/70 text-slate-600 text-[10px]">Enter</kbd> to send
+              </span>
+
+              <button
+                id="send-message-btn"
+                onClick={handleSend}
+                disabled={!canSend}
+                aria-label="Send message"
+                className="
+                  shrink-0 w-8 h-8 rounded-xl flex items-center justify-center
+                  bg-gradient-to-r from-[#5B4CF3] to-[#8B2EFF] text-white shadow-xs
+                  hover:scale-105 active:scale-95 transition-all duration-200
+                  disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:shadow-none
+                "
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                  className="w-4 h-4"
+                  aria-hidden="true"
+                >
+                  <path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
 
         {activeMention && mentionSuggestions.length > 0 && (
           <ul
-            className="absolute left-2 right-2 md:left-20 md:right-16 bottom-16 max-h-56 overflow-y-auto rounded-xl border border-slate-200 bg-white shadow-xl z-40"
+            className="absolute left-4 right-4 bottom-full mb-2 max-h-56 overflow-y-auto rounded-2xl border border-slate-200 bg-white shadow-2xl z-40 p-1"
             role="listbox"
             aria-label="Mention suggestions"
           >
@@ -564,7 +623,7 @@ export const MessageInput = ({
                     event.preventDefault();
                     insertMention(participant);
                   }}
-                  className={`w-full px-3 py-2.5 text-left hover:bg-slate-50 transition-colors ${
+                  className={`w-full px-3 py-2 text-left rounded-xl hover:bg-slate-50 transition-colors ${
                     index === mentionSelectionIndex ? "bg-purple-50 text-[#5B4CF3]" : ""
                   }`}
                 >
@@ -579,29 +638,6 @@ export const MessageInput = ({
             ))}
           </ul>
         )}
-
-        <button
-          id="send-message-btn"
-          onClick={handleSend}
-          disabled={!canSend}
-          aria-label="Send message"
-          className="
-            shrink-0 w-10 h-10 rounded-xl flex items-center justify-center
-            bg-gradient-to-r from-[#5B4CF3] to-[#8B2EFF] text-white shadow-md shadow-[#5B4CF3]/30
-            hover:scale-105 active:scale-95 transition-all duration-200
-            disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:shadow-none
-          "
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="currentColor"
-            className="w-5 h-5"
-            aria-hidden="true"
-          >
-            <path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z" />
-          </svg>
-        </button>
       </div>
     </div>
   );

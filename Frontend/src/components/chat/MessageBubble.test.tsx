@@ -92,7 +92,8 @@ describe("MessageBubble", () => {
         currentUserId="user-1"
       />,
     );
-    const deleteBtn = screen.getByTitle("Delete for everyone");
+    fireEvent.click(screen.getByTitle("More actions"));
+    const deleteBtn = screen.getByText("Delete");
     expect(deleteBtn).toBeInTheDocument();
 
     fireEvent.click(deleteBtn);
@@ -391,13 +392,12 @@ describe("MessageBubble", () => {
       />,
     );
 
-    const copyBtn = screen.getByTitle("Copy message");
+    fireEvent.click(screen.getByTitle("More actions"));
+    const copyBtn = screen.getByText("Copy text");
     expect(copyBtn).toBeInTheDocument();
 
     fireEvent.click(copyBtn);
     expect(writeTextMock).toHaveBeenCalledWith("Hello World");
-    const copiedBtn = await screen.findByTitle("Copied");
-    expect(copiedBtn).toBeInTheDocument();
   });
 
   it("does not show copy button if message is deleted or has no content", () => {

@@ -10,9 +10,11 @@ module.exports = {
     vision: false,
   },
   createModel({ temperature = 0.3 } = {}) {
+    const model = process.env.GROQ_MODEL || "llama-3.3-70b-versatile";
     return new ChatGroq({
       apiKey: process.env.GROQ_API_KEY,
-      modelName: process.env.GROQ_MODEL || "llama-3.3-70b-versatile",
+      model,
+      modelName: model,
       temperature,
     });
   },

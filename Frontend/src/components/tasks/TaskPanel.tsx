@@ -183,57 +183,66 @@ export const TaskPanel: React.FC<TaskPanelProps> = ({
   }, [tasks]);
 
   return (
-    <div className="w-full md:w-[300px] flex flex-col h-full bg-white/90 backdrop-blur-xl border-l border-slate-200/80 text-slate-900 shrink-0">
-      {/* Header */}
-      <div className="p-4 border-b border-slate-100 space-y-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <CheckSquare className="w-5 h-5 text-[#5B4CF3]" />
-            <h3 className="font-extrabold text-sm tracking-tight text-slate-900">Action Items</h3>
-            <span className="px-2 py-0.5 text-xs font-semibold bg-purple-50 text-[#5B4CF3] border border-purple-200/60 rounded-full">
+    <div className="w-full md:w-[320px] flex flex-col h-full bg-white/95 backdrop-blur-xl border-l border-slate-200 text-slate-900 shrink-0 shadow-lg overflow-hidden max-w-full">
+      {/* Header Bar */}
+      <div className="p-3.5 border-b border-slate-100 space-y-2.5 bg-slate-50/50">
+        {/* Top Header Row: Title on Left, Close Button on Right */}
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="p-1.5 rounded-lg bg-indigo-50 text-[#5B4CF3] shrink-0">
+              <CheckSquare className="w-4 h-4" />
+            </div>
+            <h3 className="font-extrabold text-sm tracking-tight text-slate-900 truncate">Action Items</h3>
+            <span className="px-2 py-0.5 text-xs font-bold bg-indigo-50 text-[#5B4CF3] border border-indigo-100 rounded-full shrink-0">
               {stats.total}
             </span>
           </div>
 
-          <div className="flex items-center gap-1.5">
+          {onClose && (
             <button
-              onClick={() => setIsAIExtractOpen(true)}
-              className="flex items-center gap-1 px-2.5 py-1.5 bg-purple-50 hover:bg-purple-100 text-[#5B4CF3] text-xs font-bold rounded-xl border border-purple-200/60 transition-all duration-200 focus:outline-none"
-              title="Extract action items from chat using AI"
+              type="button"
+              onClick={onClose}
+              className="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-900 transition-colors focus:outline-none cursor-pointer shrink-0"
+              aria-label="Close task panel"
             >
-              <Sparkles className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">AI Extract</span>
+              <X className="w-4 h-4" />
             </button>
-            <button
-              onClick={() => setIsCreateOpen(true)}
-              title="Create Task"
-              className="flex items-center gap-1 px-3 py-1.5 bg-gradient-to-r from-[#5B4CF3] to-[#8B2EFF] text-white text-xs font-bold rounded-xl shadow-xs hover:scale-105 active:scale-95 transition-all duration-200 focus:outline-none"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              <span>New Task</span>
-            </button>
-            {onClose && (
-              <button
-                onClick={onClose}
-                className="p-1 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-900 transition-colors focus:outline-none"
-                aria-label="Close task panel"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            )}
-          </div>
+          )}
         </div>
 
-        {/* Progress Bar */}
+        {/* Action CTAs Row - Equal width side-by-side buttons */}
+        <div className="flex items-center gap-2 w-full">
+          <button
+            type="button"
+            onClick={() => setIsAIExtractOpen(true)}
+            className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold rounded-xl border border-slate-200 shadow-2xs transition-all duration-200 focus:outline-none cursor-pointer truncate"
+            title="Extract action items from chat using AI"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-[#5B4CF3] shrink-0" />
+            <span className="truncate">AI Extract</span>
+          </button>
+          
+          <button
+            type="button"
+            onClick={() => setIsCreateOpen(true)}
+            title="Create Task"
+            className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 bg-[#5B4CF3] hover:bg-[#4c3ed8] text-white text-xs font-bold rounded-xl shadow-xs transition-all duration-200 active:scale-95 focus:outline-none cursor-pointer truncate"
+          >
+            <Plus className="w-3.5 h-3.5 shrink-0" />
+            <span className="truncate">New Task</span>
+          </button>
+        </div>
+
+        {/* Integrated Progress Card */}
         {stats.total > 0 && (
-          <div className="space-y-1">
-            <div className="flex justify-between text-[11px] font-semibold text-slate-500">
-              <span>{stats.completed} of {stats.total} done</span>
-              <span>{stats.progressPct}%</span>
+          <div className="p-3 rounded-xl bg-white border border-slate-200/80 shadow-2xs space-y-1.5">
+            <div className="flex justify-between text-xs font-bold text-slate-700">
+              <span>Task Completion</span>
+              <span className="text-[#5B4CF3] font-mono">{stats.completed}/{stats.total} ({stats.progressPct}%)</span>
             </div>
-            <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+            <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
               <div
-                className="h-full bg-gradient-to-r from-[#5B4CF3] to-[#8B2EFF] transition-all duration-300 rounded-full"
+                className="h-full bg-gradient-to-r from-[#5B4CF3] to-purple-600 transition-all duration-300 rounded-full"
                 style={{ width: `${stats.progressPct}%` }}
               />
             </div>
@@ -241,28 +250,51 @@ export const TaskPanel: React.FC<TaskPanelProps> = ({
         )}
 
         {/* Search & Filters */}
-        <div className="flex items-center gap-2 pt-1">
-          <div className="relative flex-1">
-            <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Filter tasks..."
-              className="w-full pl-8 pr-3 py-1.5 bg-slate-50/70 border border-slate-200/90 rounded-xl text-xs font-normal text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#6C4CF1] focus:bg-white focus:ring-4 focus:ring-[#6C4CF1]/12 transition-all"
-            />
+        <div className="space-y-2 pt-0.5">
+          <div className="flex items-center gap-2 w-full">
+            <div className="relative flex-1 min-w-0">
+              <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Filter tasks..."
+                className="w-full pl-8 pr-2.5 py-1.5 bg-white border border-slate-200/90 rounded-xl text-xs font-normal text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#5B4CF3] focus:ring-2 focus:ring-[#5B4CF3]/10 transition-all"
+              />
+            </div>
+
+            <select
+              value={filter}
+              onChange={(e: any) => setFilter(e.target.value)}
+              className="w-20 shrink-0 px-2 py-1.5 bg-white border border-slate-200/90 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none focus:border-[#5B4CF3] focus:ring-2 focus:ring-[#5B4CF3]/10 transition-all cursor-pointer"
+            >
+              <option value="all">All</option>
+              <option value="assigned">Mine</option>
+              <option value="todo">To Do</option>
+              <option value="done">Done</option>
+            </select>
           </div>
 
-          <select
-            value={filter}
-            onChange={(e: any) => setFilter(e.target.value)}
-            className="px-2.5 py-1.5 bg-slate-50/70 border border-slate-200/90 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none focus:border-[#6C4CF1] focus:bg-white focus:ring-4 focus:ring-[#6C4CF1]/12 transition-all"
-          >
-            <option value="all">All</option>
-            <option value="assigned">My Tasks</option>
-            <option value="todo">To Do</option>
-            <option value="done">Done</option>
-          </select>
+          {/* Active Filter Removable Chip */}
+          {(filter !== "all" || searchQuery.trim() !== "") && (
+            <div className="flex items-center gap-1.5 pt-0.5">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Filter:</span>
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 border border-indigo-200 text-xs font-bold truncate max-w-[200px]">
+                <span className="truncate">{searchQuery ? `"${searchQuery}"` : filter === "assigned" ? "Mine" : filter === "todo" ? "To Do" : "Done"}</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFilter("all");
+                    setSearchQuery("");
+                  }}
+                  className="p-0.5 hover:bg-indigo-100 rounded-xs text-indigo-600 cursor-pointer shrink-0"
+                  title="Clear filter"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </span>
+            </div>
+          )}
         </div>
       </div>
 
@@ -276,15 +308,16 @@ export const TaskPanel: React.FC<TaskPanelProps> = ({
           <div className="p-4 text-center">
             <p className="text-xs text-red-500 font-medium mb-2">{error}</p>
             <button
+              type="button"
               onClick={fetchData}
-              className="text-xs font-bold text-[#5B4CF3] hover:underline"
+              className="text-xs font-bold text-[#5B4CF3] hover:underline cursor-pointer"
             >
               Try again
             </button>
           </div>
         ) : filteredTasks.length === 0 ? (
           <div className="p-8 text-center text-slate-400">
-            <CheckSquare className="w-8 h-8 mx-auto mb-2 opacity-40" />
+            <CheckSquare className="w-8 h-8 mx-auto mb-2 opacity-40 text-slate-400" />
             <p className="text-xs font-semibold text-slate-600">No action items found</p>
             <p className="text-[11px] text-slate-400 mt-1">
               {searchQuery || filter !== "all"

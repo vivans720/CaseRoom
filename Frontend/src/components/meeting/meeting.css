@@ -572,13 +572,16 @@
 }
 
 .join-meeting-btn--start {
-  background: linear-gradient(135deg, #5B4CF3, #8B2EFF);
-  color: white;
-  box-shadow: 0 4px 12px rgba(91, 76, 243, 0.3);
+  background: rgba(91, 76, 243, 0.06);
+  color: #5B4CF3;
+  border: 1px solid rgba(91, 76, 243, 0.25);
+  box-shadow: none;
 }
 
 .join-meeting-btn--start:hover {
-  box-shadow: 0 6px 20px rgba(91, 76, 243, 0.45);
+  background: rgba(91, 76, 243, 0.12);
+  border-color: rgba(91, 76, 243, 0.4);
+  box-shadow: 0 2px 8px rgba(91, 76, 243, 0.15);
 }
 
 .join-meeting-btn--join {

@@ -10,9 +10,11 @@ module.exports = {
     vision: false,
   },
   createModel({ temperature = 0.3 } = {}) {
+    const model = process.env.OPENROUTER_MODEL || "meta-llama/llama-3.3-70b-instruct";
     return new ChatOpenAI({
       openAIApiKey: process.env.OPENROUTER_API_KEY,
-      modelName: process.env.OPENROUTER_MODEL || "meta-llama/llama-3.3-70b-instruct",
+      model,
+      modelName: model,
       temperature,
       configuration: {
         baseURL: "https://openrouter.ai/api/v1",

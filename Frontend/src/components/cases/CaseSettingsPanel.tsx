@@ -11,8 +11,6 @@ import {
 import { useAuth } from "../../hooks/useAuth";
 import { ConfirmDialog } from "../ui/ConfirmDialog";
 import { Spinner } from "../ui/Spinner";
-import { MeetingHistoryPanel } from "../meeting/MeetingHistoryPanel";
-import { SimilarCasesPanel } from "./SimilarCasesPanel";
 import type { Case, CaseStatus } from "../../types";
 
 interface CaseSettingsPanelProps {
@@ -185,15 +183,6 @@ export const CaseSettingsPanel = ({
           )}
         </div>
 
-        {/* AI Similar Cases Section */}
-        <div className="border-t border-slate-100 pt-3">
-          <SimilarCasesPanel caseId={caseId} />
-        </div>
-
-        {/* Meeting History Section */}
-        <div className="border-t border-slate-100 pt-3">
-          <MeetingHistoryPanel caseId={caseId} />
-        </div>
 
         {/* Export Chat to PDF (Archived cases only) */}
         {isArchived && (

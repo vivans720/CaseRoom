@@ -9,6 +9,7 @@ export const useReadReceipts = (caseId: string) => {
 
   // Track unread message IDs
   const unreadMessageIds = useRef<Set<string>>(new Set());
+  const pendingNodes = useRef<Set<HTMLDivElement>>(new Set());
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const emitReadReceipts = useCallback(() => {
@@ -22,11 +23,18 @@ export const useReadReceipts = (caseId: string) => {
     unreadMessageIds.current.clear();
   }, [caseId, socket]);
 
+  const emitReadReceiptsRef = useRef(emitReadReceipts);
+  useEffect(() => {
+    emitReadReceiptsRef.current = emitReadReceipts;
+  }, [emitReadReceipts]);
+
   // Use an IntersectionObserver to flag messages when they appear on screen
   const observerRef = useRef<IntersectionObserver | null>(null);
 
   useEffect(() => {
-    observerRef.current = new IntersectionObserver(
+    unreadMessageIds.current.clear();
+
+    const observer = new IntersectionObserver(
       (entries) => {
         let hasNewVisible = false;
 
@@ -36,7 +44,7 @@ export const useReadReceipts = (caseId: string) => {
             if (messageId) {
               unreadMessageIds.current.add(messageId);
               hasNewVisible = true;
-              observerRef.current?.unobserve(entry.target);
+              observer.unobserve(entry.target);
             }
           }
         });
@@ -44,33 +52,46 @@ export const useReadReceipts = (caseId: string) => {
         // Debounce emit
         if (hasNewVisible) {
           if (timeoutRef.current) clearTimeout(timeoutRef.current);
-          timeoutRef.current = setTimeout(emitReadReceipts, 500);
+          timeoutRef.current = setTimeout(() => {
+            emitReadReceiptsRef.current();
+          }, 500);
         }
       },
       {
         root: null,
         rootMargin: "0px",
-        threshold: 0.5,
+        threshold: 0.1,
       },
     );
 
+    observerRef.current = observer;
+
+    // Observe any nodes registered before observer was attached
+    pendingNodes.current.forEach((node) => {
+      observer.observe(node);
+    });
+
     return () => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
-      observerRef.current?.disconnect();
+      observer.disconnect();
+      observerRef.current = null;
     };
-  }, [emitReadReceipts]);
+  }, [caseId]);
 
   // Callback ref applied to message bubbles
   const messageRef = useCallback(
     (node: HTMLDivElement | null) => {
-      if (!node || !observerRef.current || !user?._id) return;
+      if (!node || !user?._id) return;
 
       const isUnread = node.getAttribute("data-unread") === "true";
       const isOwn = node.getAttribute("data-own") === "true";
 
       // Only observe received unread messages
-      if (node && isUnread && !isOwn) {
-        observerRef.current.observe(node);
+      if (isUnread && !isOwn) {
+        pendingNodes.current.add(node);
+        if (observerRef.current) {
+          observerRef.current.observe(node);
+        }
       }
     },
     [user?._id],

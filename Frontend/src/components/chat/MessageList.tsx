@@ -47,12 +47,22 @@ const formatDateSeparator = (dateStr: string): string => {
 };
 
 const DateSeparator = ({ label }: { label: string }): JSX.Element => (
-  <div className="flex items-center gap-3 my-5 px-6">
-    <div className="flex-1 h-px bg-gradient-to-r from-transparent via-slate-200 to-slate-200" />
-    <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider bg-white/90 px-3 py-1 rounded-full border border-slate-200/80 shadow-2xs">
+  <div className="flex items-center gap-3 my-6 py-1 px-6 select-none">
+    <div className="flex-1 h-px bg-slate-200/80" />
+    <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider bg-slate-50 px-3.5 py-1 rounded-full border border-slate-200/90 shadow-2xs">
       {label}
     </span>
-    <div className="flex-1 h-px bg-gradient-to-l from-transparent via-slate-200 to-slate-200" />
+    <div className="flex-1 h-px bg-slate-200/80" />
+  </div>
+);
+
+const NewMessagesDivider = (): JSX.Element => (
+  <div className="flex items-center gap-3 my-4 px-6 select-none" data-testid="new-messages-divider">
+    <div className="flex-1 h-px bg-rose-300" />
+    <span className="text-[11px] font-bold text-rose-600 bg-rose-50 px-3 py-0.5 rounded-full border border-rose-200 uppercase tracking-wider">
+      New Messages
+    </span>
+    <div className="flex-1 h-px bg-rose-300" />
   </div>
 );
 
@@ -203,6 +213,13 @@ export const MessageList = ({
     );
   }
 
+  // Find index of first unread message from someone else
+  const firstUnreadIndex = messages.findIndex(
+    (msg) =>
+      getSenderId(msg) !== currentUserId &&
+      (!msg.readBy || !msg.readBy.some((r) => r.userId === currentUserId)),
+  );
+
   // Build rendered items with date separators and grouped sender logic
   const renderedItems: JSX.Element[] = [];
   let lastDateKey = "";
@@ -219,22 +236,27 @@ export const MessageList = ({
       lastDateKey = dateKey;
     }
 
+    // Insert New Messages divider before first unread message
+    if (index === firstUnreadIndex && firstUnreadIndex !== -1) {
+      renderedItems.push(<NewMessagesDivider key="new-msgs-divider" />);
+    }
+
     const isOwn = getSenderId(msg) === currentUserId;
 
     // Show sender info only when the previous message is from a different sender
-    // or from a different calendar minute
+    // or from > 5 minutes apart
     const prevMsg = index > 0 ? messages[index - 1] : null;
-    const sameMinute =
+    const sameWindow =
       prevMsg !== null &&
       getDateKey(prevMsg.createdAt) === dateKey &&
       Math.abs(
         new Date(msg.createdAt).getTime() -
           new Date(prevMsg.createdAt).getTime(),
-      ) < 60_000;
+      ) < 300_000;
     const sameSender =
       prevMsg !== null && getSenderId(prevMsg) === getSenderId(msg);
 
-    const showSender = !(sameSender && sameMinute);
+    const showSender = !(sameSender && sameWindow);
 
     renderedItems.push(
       <div

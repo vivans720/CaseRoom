@@ -10,7 +10,7 @@ import { CaseListSkeleton } from "../ui/Skeleton";
 import { useAuth } from "../../hooks/useAuth";
 import { ProfileModal } from "../profile/ProfileModal";
 import { ChangePasswordModal } from "../profile/ChangePasswordModal";
-import { Sparkles } from "lucide-react";
+import { Sparkles, SlidersHorizontal, X } from "lucide-react";
 import aiService from "../../services/aiService";
 import type { Case } from "../../types";
 
@@ -96,13 +96,21 @@ const LogoutIcon = (): JSX.Element => (
   </svg>
 );
 
-const filterCases = (
+const PRIORITY_ORDER: Record<string, number> = {
+  Critical: 4,
+  High: 3,
+  Medium: 2,
+  Low: 1,
+};
+
+const filterAndSortCases = (
   cases: Case[],
   query: string,
   priority: string,
   category: string,
+  sortBy: "recent" | "priority",
 ): Case[] => {
-  return cases.filter((c) => {
+  const filtered = cases.filter((c) => {
     if (query.trim()) {
       const lower = query.toLowerCase();
       if (!c.title.toLowerCase().includes(lower)) return false;
@@ -115,6 +123,16 @@ const filterCases = (
     }
     return true;
   });
+
+  if (sortBy === "priority") {
+    return [...filtered].sort((a, b) => {
+      const pA = PRIORITY_ORDER[a.priority || "Medium"] || 0;
+      const pB = PRIORITY_ORDER[b.priority || "Medium"] || 0;
+      return pB - pA;
+    });
+  }
+
+  return filtered;
 };
 
 export const CaseSidebar = ({ onClose }: { onClose?: () => void } = {}): JSX.Element => {
@@ -143,12 +161,15 @@ export const CaseSidebar = ({ onClose }: { onClose?: () => void } = {}): JSX.Ele
   const [isAISearching, setIsAISearching] = useState(false);
   const [priorityFilter, setPriorityFilter] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
+  const [sortBy, setSortBy] = useState<"recent" | "priority">("recent");
+  const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
 
   const menuRef = useRef<HTMLDivElement>(null);
+  const filterRef = useRef<HTMLDivElement>(null);
 
   // AI Semantic search debounced effect
   useEffect(() => {
@@ -173,31 +194,34 @@ export const CaseSidebar = ({ onClose }: { onClose?: () => void } = {}): JSX.Ele
     return () => clearTimeout(timer);
   }, [useAISearch, searchQuery]);
 
-  // Close menu when clicking outside
+  // Close menus when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
         setIsProfileMenuOpen(false);
       }
+      if (filterRef.current && !filterRef.current.contains(event.target as Node)) {
+        setIsFilterSheetOpen(false);
+      }
     };
 
-    if (isProfileMenuOpen) {
+    if (isProfileMenuOpen || isFilterSheetOpen) {
       document.addEventListener("mousedown", handleClickOutside);
     }
 
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [isProfileMenuOpen]);
+  }, [isProfileMenuOpen, isFilterSheetOpen]);
 
   const filteredPinned = useMemo(
-    () => filterCases(pinnedCases, searchQuery, priorityFilter, categoryFilter),
-    [pinnedCases, searchQuery, priorityFilter, categoryFilter],
+    () => filterAndSortCases(pinnedCases, searchQuery, priorityFilter, categoryFilter, sortBy),
+    [pinnedCases, searchQuery, priorityFilter, categoryFilter, sortBy],
   );
 
   const filteredUnpinned = useMemo(
-    () => filterCases(unpinnedCases, searchQuery, priorityFilter, categoryFilter),
-    [unpinnedCases, searchQuery, priorityFilter, categoryFilter],
+    () => filterAndSortCases(unpinnedCases, searchQuery, priorityFilter, categoryFilter, sortBy),
+    [unpinnedCases, searchQuery, priorityFilter, categoryFilter, sortBy],
   );
 
   const totalCases = pinnedCases.length + unpinnedCases.length;
@@ -223,12 +247,12 @@ export const CaseSidebar = ({ onClose }: { onClose?: () => void } = {}): JSX.Ele
       {/* Sidebar Container */}
       <aside className="flex h-full w-full flex-col bg-white">
         
-        {/* Item 11 & 15: Polished Balanced Header with Top Quick-Create (+) Button */}
-        <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3.5 md:px-4">
+        {/* Clean Header: Logo & Profile */}
+        <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3 md:px-4">
           <div
             onClick={() => navigate("/")}
             title="Return to Dashboard"
-            className="flex items-center gap-2.5 transition-transform duration-300 hover:scale-[1.02] cursor-pointer md:gap-2.5"
+            className="flex items-center gap-2.5 transition-opacity hover:opacity-80 cursor-pointer"
           >
             {onClose && (
               <button
@@ -243,33 +267,22 @@ export const CaseSidebar = ({ onClose }: { onClose?: () => void } = {}): JSX.Ele
                 ✕
               </button>
             )}
-            <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-gradient-to-r from-[#5B4CF3] to-[#8B2EFF] text-white shadow-md shadow-[#5B4CF3]/30">
-              <svg className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-2xs">
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
               </svg>
             </div>
-            <span className="text-lg font-extrabold tracking-tight text-slate-900">CaseRoom</span>
+            <span className="text-base font-extrabold tracking-tight text-slate-900">CaseRoom</span>
           </div>
 
-          <div className="flex items-center gap-2 relative md:gap-2" ref={menuRef}>
-            
-            {/* Top Quick Create (+) Button */}
-            <button
-              type="button"
-              onClick={openCreateModal}
-              title="Create new case"
-              className="flex h-8 w-8 items-center justify-center rounded-xl bg-purple-50 text-[#5B4CF3] border border-purple-200/60 hover:bg-[#5B4CF3] hover:text-white hover:border-[#5B4CF3] transition-all duration-200 hover:scale-105 active:scale-95"
-            >
-              <PlusIcon />
-            </button>
-
+          <div className="flex items-center gap-2 relative" ref={menuRef}>
             {user && (
               <>
                 <button
                   type="button"
                   onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
-                  className={`flex items-center justify-center rounded-full transition-all hover:ring-2 hover:ring-[#5B4CF3]/30 ${
-                    isProfileMenuOpen ? "ring-2 ring-[#5B4CF3]" : ""
+                  className={`flex items-center justify-center rounded-full transition-all hover:ring-2 hover:ring-indigo-500/20 ${
+                    isProfileMenuOpen ? "ring-2 ring-indigo-600" : ""
                   }`}
                   aria-label="Toggle profile menu"
                   title={user.name}
@@ -283,7 +296,7 @@ export const CaseSidebar = ({ onClose }: { onClose?: () => void } = {}): JSX.Ele
 
                 {/* Profile Dropdown Menu */}
                 {isProfileMenuOpen && (
-                  <div className="absolute right-0 top-full z-50 mt-2 w-52 rounded-2xl border border-slate-100 bg-white/95 p-1.5 shadow-xl backdrop-blur-xl animate-in fade-in slide-in-from-top-2 duration-200">
+                  <div className="absolute right-0 top-full z-50 mt-2 w-52 rounded-xl border border-slate-200 bg-white p-1.5 shadow-lg animate-in fade-in zoom-in-95 duration-150">
                     <div className="px-3 py-2 border-b border-slate-100 mb-1">
                       <p className="text-xs font-bold text-slate-900 truncate">
                         {user.name}
@@ -299,7 +312,7 @@ export const CaseSidebar = ({ onClose }: { onClose?: () => void } = {}): JSX.Ele
                         setIsProfileMenuOpen(false);
                         setIsProfileModalOpen(true);
                       }}
-                      className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium text-slate-700 transition-colors hover:bg-slate-50 hover:text-[#5B4CF3]"
+                      className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium text-slate-700 transition-colors hover:bg-slate-50 hover:text-indigo-600"
                     >
                       <UserIcon />
                       My Profile
@@ -311,7 +324,7 @@ export const CaseSidebar = ({ onClose }: { onClose?: () => void } = {}): JSX.Ele
                         setIsProfileMenuOpen(false);
                         setIsPasswordModalOpen(true);
                       }}
-                      className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium text-slate-700 transition-colors hover:bg-slate-50 hover:text-[#5B4CF3]"
+                      className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium text-slate-700 transition-colors hover:bg-slate-50 hover:text-indigo-600"
                     >
                       <LockIcon />
                       Settings
@@ -325,7 +338,7 @@ export const CaseSidebar = ({ onClose }: { onClose?: () => void } = {}): JSX.Ele
                         setIsProfileMenuOpen(false);
                         void logout();
                       }}
-                      className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-xs font-semibold text-red-600 transition-colors hover:bg-red-50"
+                      className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold text-rose-600 transition-colors hover:bg-rose-50"
                     >
                       <LogoutIcon />
                       Sign Out
@@ -337,61 +350,144 @@ export const CaseSidebar = ({ onClose }: { onClose?: () => void } = {}): JSX.Ele
           </div>
         </div>
 
-        {/* Item 4 & 5: Taller 44px Search input & Unified Filter Bar */}
-        <div className="border-b border-slate-100 px-3.5 py-3 flex flex-col gap-2.5 md:px-3.5">
-          
-          {/* Taller Search Bar (44px) */}
-          <div className="flex items-center gap-2 h-[44px] rounded-xl border border-slate-200/90 bg-slate-50/70 px-3 focus-within:border-[#5B4CF3] focus-within:bg-white focus-within:ring-4 focus-within:ring-[#5B4CF3]/15 transition-all duration-200">
-            <SearchIcon />
-            <input
-              type="search"
-              value={searchQuery}
-              onChange={handleSearchChange}
-              placeholder={useAISearch ? "AI Search (semantic intent)…" : "Search active cases…"}
-              className="flex-1 min-w-0 bg-transparent text-xs text-slate-900 outline-none placeholder:text-slate-500 placeholder:font-medium font-normal"
-              aria-label="Filter cases"
-            />
-            <button
-              type="button"
-              onClick={() => setUseAISearch(!useAISearch)}
-              title={useAISearch ? "Switch to standard search" : "Switch to AI semantic search"}
-              className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-extrabold transition-all shrink-0 ${
-                useAISearch
-                  ? "bg-gradient-to-r from-[#5B4CF3] to-[#8B2EFF] text-white shadow-xs"
-                  : "bg-slate-200/70 text-slate-600 hover:bg-slate-300/80"
-              }`}
-            >
-              <Sparkles className="w-3 h-3" />
-              <span>AI</span>
-            </button>
-          </div>
+        {/* Compact Search & Filter Section */}
+        <div className="border-b border-slate-100 p-3 flex flex-col gap-2 relative">
+          {/* Search Bar + Filter Toggle */}
+          <div className="flex items-center gap-2">
+            <div className="flex-1 flex items-center gap-2 h-9 rounded-lg border border-slate-200 bg-slate-50/70 px-2.5 focus-within:border-indigo-600 focus-within:bg-white focus-within:ring-2 focus-within:ring-indigo-600/10 transition-all">
+              <SearchIcon />
+              <input
+                type="search"
+                value={searchQuery}
+                onChange={handleSearchChange}
+                placeholder={useAISearch ? "AI Search (semantic intent)…" : "Search active cases…"}
+                className="flex-1 min-w-0 bg-transparent text-xs text-slate-900 outline-none placeholder:text-slate-400 font-normal"
+                aria-label="Filter cases"
+              />
+              <button
+                type="button"
+                onClick={() => setUseAISearch(!useAISearch)}
+                title={useAISearch ? "Switch to standard search" : "Switch to AI semantic search"}
+                className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold transition-all shrink-0 ${
+                  useAISearch
+                    ? "bg-indigo-600 text-white"
+                    : "bg-slate-200/80 text-slate-600 hover:bg-slate-300"
+                }`}
+              >
+                <Sparkles className="w-3 h-3" />
+                <span>AI</span>
+              </button>
+            </div>
 
-          {/* Unified Filter Bar Wrapper */}
-          <div className="flex gap-2 p-1 rounded-xl bg-slate-100/80 border border-slate-200/60">
-            <select
-              value={priorityFilter}
-              onChange={(e) => setPriorityFilter(e.target.value)}
-              className="flex-1 bg-white border border-slate-200/80 rounded-lg px-2.5 py-1.5 text-[11px] font-semibold text-slate-700 focus:outline-none focus:border-[#5B4CF3] focus:ring-2 focus:ring-[#5B4CF3]/20 transition-all shadow-2xs"
-              aria-label="Filter by priority"
-            >
-              <option value="">All Priorities</option>
-              <option value="Low">Low</option>
-              <option value="Medium">Medium</option>
-              <option value="High">High</option>
-              <option value="Critical">Critical</option>
-            </select>
+            {/* Single Filter Button */}
+            <div className="relative shrink-0" ref={filterRef}>
+              <button
+                type="button"
+                onClick={() => setIsFilterSheetOpen(!isFilterSheetOpen)}
+                title="Filter and Sort options"
+                className={`relative flex h-9 w-9 items-center justify-center rounded-lg border transition-all ${
+                  priorityFilter || categoryFilter || sortBy === "priority" || isFilterSheetOpen
+                    ? "bg-indigo-50 text-indigo-600 border-indigo-200 font-bold"
+                    : "bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100"
+                }`}
+                aria-label="Filter and Sort"
+              >
+                <SlidersHorizontal className="w-4 h-4" />
+                {(priorityFilter || categoryFilter || sortBy === "priority") && (
+                  <span className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-indigo-600 ring-2 ring-white" />
+                )}
+              </button>
 
-            <select
-              value={categoryFilter}
-              onChange={(e) => setCategoryFilter(e.target.value)}
-              className="flex-1 bg-white border border-slate-200/80 rounded-lg px-2.5 py-1.5 text-[11px] font-semibold text-slate-700 focus:outline-none focus:border-[#5B4CF3] focus:ring-2 focus:ring-[#5B4CF3]/20 transition-all shadow-2xs"
-              aria-label="Filter by category"
-            >
-              <option value="">All Categories</option>
-              <option value="Incident">Incident</option>
-              <option value="HR">HR</option>
-              <option value="Engineering">Engineering</option>
-            </select>
+              {/* Filter & Sort Popover Sheet */}
+              {isFilterSheetOpen && (
+                <div className="absolute right-0 top-full z-50 mt-2 w-64 rounded-xl border border-slate-200 bg-white p-3 shadow-xl animate-in fade-in zoom-in-95 duration-150">
+                  <div className="flex items-center justify-between pb-2 border-b border-slate-100 mb-2.5">
+                    <span className="text-xs font-bold text-slate-900">Filter & Sort</span>
+                    <button
+                      type="button"
+                      onClick={() => setIsFilterSheetOpen(false)}
+                      className="p-1 rounded text-slate-400 hover:bg-slate-100"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+
+                  {/* Sort By Section */}
+                  <div className="mb-3 space-y-1">
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Sort By</label>
+                    <div className="flex gap-1 p-0.5 rounded-lg bg-slate-100 border border-slate-200/60">
+                      <button
+                        type="button"
+                        onClick={() => setSortBy("recent")}
+                        className={`flex-1 py-1 text-[11px] font-semibold rounded-md transition-all ${
+                          sortBy === "recent"
+                            ? "bg-white text-indigo-600 shadow-2xs"
+                            : "text-slate-600 hover:text-slate-900"
+                        }`}
+                      >
+                        Recent
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setSortBy("priority")}
+                        className={`flex-1 py-1 text-[11px] font-semibold rounded-md transition-all ${
+                          sortBy === "priority"
+                            ? "bg-white text-indigo-600 shadow-2xs"
+                            : "text-slate-600 hover:text-slate-900"
+                        }`}
+                      >
+                        By Priority
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Priority Filter */}
+                  <div className="mb-2.5 space-y-1">
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Priority</label>
+                    <select
+                      value={priorityFilter}
+                      onChange={(e) => setPriorityFilter(e.target.value)}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-medium text-slate-700 focus:outline-none focus:border-indigo-600"
+                    >
+                      <option value="">All Priorities</option>
+                      <option value="Critical">Critical</option>
+                      <option value="High">High</option>
+                      <option value="Medium">Medium</option>
+                      <option value="Low">Low</option>
+                    </select>
+                  </div>
+
+                  {/* Category Filter */}
+                  <div className="mb-3 space-y-1">
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Category</label>
+                    <select
+                      value={categoryFilter}
+                      onChange={(e) => setCategoryFilter(e.target.value)}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-medium text-slate-700 focus:outline-none focus:border-indigo-600"
+                    >
+                      <option value="">All Categories</option>
+                      <option value="Incident">Incident</option>
+                      <option value="HR">HR</option>
+                      <option value="Engineering">Engineering</option>
+                    </select>
+                  </div>
+
+                  {(priorityFilter || categoryFilter || sortBy !== "recent") && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setPriorityFilter("");
+                        setCategoryFilter("");
+                        setSortBy("recent");
+                      }}
+                      className="w-full py-1 text-center text-[11px] font-bold text-indigo-600 hover:underline border-t border-slate-100 pt-2"
+                    >
+                      Reset All Filters
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
@@ -509,13 +605,13 @@ export const CaseSidebar = ({ onClose }: { onClose?: () => void } = {}): JSX.Ele
           )}
         </div>
 
-        {/* Item 10: 56px Tall Elevated "+ New Case" button */}
-        <div className="border-t border-slate-100 p-3.5 bg-white md:p-3.5">
+        {/* Clean "+ New Case" button */}
+        <div className="border-t border-slate-100 p-3 bg-white">
           <button
             type="button"
             id="new-case-button"
             onClick={openCreateModal}
-            className="flex h-[56px] w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#5B4CF3] to-[#8B2EFF] px-4 text-xs font-bold text-white shadow-[0_14px_35px_rgba(91,76,243,0.4)] transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_20px_45px_rgba(91,76,243,0.55)] focus:outline-none focus:ring-4 focus:ring-[#6C4CF1]/25 active:translate-y-0"
+            className="flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 px-4 text-xs font-semibold text-white shadow-2xs transition-all active:scale-[0.98]"
           >
             <PlusIcon />
             New Case

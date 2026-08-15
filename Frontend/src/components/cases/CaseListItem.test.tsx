@@ -56,14 +56,14 @@ describe("CaseListItem", () => {
 
   it("shows active status dot for active case", () => {
     renderItem(makeCase({ status: "active" }))
-    const dot = screen.getByTitle("Status: Active")
+    const dot = screen.getByTitle(/Status: Active/i)
     expect(dot).toBeInTheDocument()
     expect(dot).toHaveClass("bg-emerald-500")
   })
 
   it("shows archived status dot for archived case", () => {
     renderItem(makeCase({ status: "archived" }))
-    const dot = screen.getByTitle("Status: Archived")
+    const dot = screen.getByTitle(/Status: Archived/i)
     expect(dot).toBeInTheDocument()
     expect(dot).toHaveClass("bg-slate-400")
   })
@@ -97,7 +97,7 @@ describe("CaseListItem", () => {
       </MemoryRouter>,
     )
     const link = screen.getByRole("link", { name: /Case: Test Case/i })
-    expect(link).toHaveClass("bg-gradient-to-r")
-    expect(link).toHaveClass("border-purple-300")
+    expect(link).toHaveClass("bg-indigo-50/70")
+    expect(link).toHaveClass("text-indigo-900")
   })
 })

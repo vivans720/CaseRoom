@@ -120,7 +120,7 @@ export const DocumentQAPanel = ({
           <div className="inline-block animate-spin text-indigo-400">
             <Sparkles className="w-5 h-5" />
           </div>
-          <p className="text-xs text-slate-400 font-medium">Analyzing document with Gemma 3:4B RAG…</p>
+          <p className="text-xs text-slate-400 font-medium">Analyzing document with AI RAG…</p>
         </div>
       )}
 

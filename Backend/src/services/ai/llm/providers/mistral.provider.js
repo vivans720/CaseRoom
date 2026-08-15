@@ -10,9 +10,11 @@ module.exports = {
     vision: false,
   },
   createModel({ temperature = 0.3 } = {}) {
+    const model = process.env.MISTRAL_MODEL || "mistral-small-latest";
     return new ChatMistralAI({
       apiKey: process.env.MISTRAL_API_KEY,
-      modelName: process.env.MISTRAL_MODEL || "mistral-small-latest",
+      model,
+      modelName: model,
       temperature,
     });
   },

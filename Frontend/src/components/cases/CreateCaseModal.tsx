@@ -230,38 +230,57 @@ export const CreateCaseModal = ({
 
         {/* Multi-Candidate Duplicate Warning */}
         {duplicateWarning?.matchedCases && duplicateWarning.matchedCases.length > 0 && (
-          <div className="p-3.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-200 text-xs space-y-2.5 animate-in fade-in duration-200">
-            <div className="flex items-center justify-between">
-              <p className="font-bold flex items-center gap-1.5 text-amber-900 dark:text-amber-100">
-                <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
-                {duplicateWarning.isDuplicate ? "Likely Duplicate Case Detected" : "Similar Existing Cases Found"}
-                <Sparkles className="w-3.5 h-3.5 text-[#5B4CF3]" />
-              </p>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-200/60 dark:bg-amber-900/60 text-amber-900 dark:text-amber-100">
+          <div className="rounded-2xl border border-amber-200/90 bg-amber-50/70 p-3.5 space-y-2.5 shadow-xs animate-in fade-in duration-200">
+            {/* Header */}
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 min-w-0">
+                <div className="w-6 h-6 rounded-lg bg-amber-100 border border-amber-200 text-amber-700 flex items-center justify-center shrink-0">
+                  <AlertTriangle className="w-3.5 h-3.5" />
+                </div>
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <span className="text-xs font-bold text-amber-950 truncate">
+                    {duplicateWarning.isDuplicate ? "Likely Duplicate Case Detected" : "Similar Existing Cases Found"}
+                  </span>
+                  <Sparkles className="w-3.5 h-3.5 text-[#5B4CF3] shrink-0" />
+                </div>
+              </div>
+              <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-amber-100 border border-amber-300/70 text-amber-900 shrink-0 whitespace-nowrap">
                 Top match: {duplicateWarning.similarityPercentage}%
               </span>
             </div>
 
+            {/* Candidate List */}
             <div className="space-y-2">
-              {duplicateWarning.matchedCases.map((cand, idx) => (
-                <div key={idx} className="p-2.5 rounded-lg bg-white/80 dark:bg-slate-900/80 border border-amber-200/60 dark:border-amber-800/60 space-y-1">
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-slate-900 dark:text-slate-100">
-                      "{cand.case.title}"
-                    </span>
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                      cand.similarityPercentage >= 85 ? "bg-red-500/10 text-red-600 border border-red-500/20" : "bg-blue-500/10 text-blue-600 border border-blue-500/20"
-                    }`}>
-                      {cand.similarityPercentage}% Match
-                    </span>
+              {duplicateWarning.matchedCases.map((cand, idx) => {
+                const isHighMatch = cand.similarityPercentage >= 85
+                return (
+                  <div
+                    key={idx}
+                    className="p-3 rounded-xl bg-white border border-amber-200/80 shadow-2xs space-y-1.5 transition-all hover:border-amber-300"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <h4 className="text-xs font-bold text-slate-900 leading-snug break-words flex-1">
+                        "{cand.case.title}"
+                      </h4>
+                      <span
+                        className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full border shrink-0 whitespace-nowrap ${
+                          isHighMatch
+                            ? "bg-rose-50 text-rose-700 border-rose-200"
+                            : "bg-indigo-50 text-indigo-700 border-indigo-200"
+                        }`}
+                      >
+                        {cand.similarityPercentage}% Match
+                      </span>
+                    </div>
+                    {cand.matchReason && (
+                      <p className="text-[11px] text-slate-600 leading-relaxed font-normal">
+                        <span className="font-semibold text-slate-700">Rationale: </span>
+                        {cand.matchReason}
+                      </p>
+                    )}
                   </div>
-                  {cand.matchReason && (
-                    <p className="text-[11px] text-slate-600 dark:text-slate-300 italic">
-                      Rationale: {cand.matchReason}
-                    </p>
-                  )}
-                </div>
-              ))}
+                )
+              })}
             </div>
           </div>
         )}

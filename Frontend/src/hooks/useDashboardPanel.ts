@@ -2,7 +2,7 @@ import { useOutletContext } from "react-router-dom"
 
 import type { User } from "../types"
 
-export type RightPanel = "participants" | "settings" | "search" | "media" | "tasks" | "assistant" | "similar" | "insights" | null
+export type RightPanel = "participants" | "settings" | "search" | "media" | "tasks" | "assistant" | "similar" | "insights" | "meetings" | null
 
 export interface DashboardOutletContext {
   activePanel: RightPanel;

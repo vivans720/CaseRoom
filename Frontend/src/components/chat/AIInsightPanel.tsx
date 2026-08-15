@@ -35,13 +35,16 @@ export const AIInsightPanel = ({ caseId, onClose }: Props): JSX.Element => {
   const handleScan = async () => {
     setScanning(true);
     setError("");
-    setMessage("");
+    setMessage("Contradiction scan queued. Results will appear shortly.");
     try {
       await aiService.scanContradictions(caseId);
-      setMessage("Contradiction scan queued. Results will appear shortly.");
-      setTimeout(() => void fetchInsights(), 3000);
+      setTimeout(async () => {
+        await fetchInsights();
+        setMessage("");
+      }, 3500);
     } catch (err: any) {
       setError(err?.response?.data?.message || "Could not start contradiction scan.");
+      setMessage("");
     } finally {
       setScanning(false);
     }
@@ -100,8 +103,16 @@ export const AIInsightPanel = ({ caseId, onClose }: Props): JSX.Element => {
       {/* Body List */}
       <div className="flex-1 space-y-3 overflow-y-auto p-4">
         {message && (
-          <div className="rounded-xl border border-indigo-200 bg-indigo-50 p-3 text-xs text-indigo-800">
-            {message}
+          <div className="rounded-xl border border-indigo-200 bg-indigo-50 p-3 text-xs text-indigo-800 flex items-center justify-between gap-2 animate-in fade-in duration-200">
+            <span>{message}</span>
+            <button
+              type="button"
+              onClick={() => setMessage("")}
+              className="text-indigo-400 hover:text-indigo-700 cursor-pointer p-0.5"
+              aria-label="Dismiss message"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
           </div>
         )}
         {error && (

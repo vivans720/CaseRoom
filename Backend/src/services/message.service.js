@@ -371,6 +371,27 @@ const markMessagesAsRead = async (userId, caseId, messageIds) => {
   return result;
 };
 
+const markAllMessagesAsReadInCase = async (userId, caseId) => {
+  const result = await Message.updateMany(
+    {
+      caseId: caseId,
+      senderId: { $ne: userId },
+      "readBy.userId": { $ne: userId },
+      isDeleted: { $ne: true },
+    },
+    {
+      $push: {
+        readBy: {
+          userId: userId,
+          readAt: new Date(),
+        },
+      },
+    },
+  );
+
+  return result;
+};
+
 //Gets the count of unread messages for a specific user in a specific case.
 // Excludes messages sent by the user themselves and messages logically deleted.
 const getUnreadCount = async (userId, caseId) => {
@@ -772,6 +793,7 @@ module.exports = {
   resolveMentionedUserIds,
   searchMessages,
   markMessagesAsRead,
+  markAllMessagesAsReadInCase,
   getUnreadCount,
   editMessage,
   deleteMessage,

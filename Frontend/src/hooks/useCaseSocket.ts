@@ -31,6 +31,7 @@ export const useCaseSocket = (
 
     socket.emit("join_case", { caseId });
     socket.emit("get_online_users", { caseId });
+    socket.emit("mark_read", { caseId });
 
     interface MessageReadEvent {
       caseId: string;

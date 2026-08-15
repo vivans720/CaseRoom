@@ -1,6 +1,6 @@
 import { useEffect, useState, type JSX } from "react";
-import { Sparkles, Plus, MessageSquare, AlertTriangle, ArrowUpRight, X } from "lucide-react";
-import aiService, { type AIAnswer, type AICitation, type AIConversation, type AIInsight } from "../../services/aiService";
+import { Sparkles, Plus, MessageSquare, ArrowUpRight, X, ArrowLeft, Clock } from "lucide-react";
+import aiService, { type AIAnswer, type AICitation, type AIConversation } from "../../services/aiService";
 import { AISummaryModal } from "./AISummaryModal";
 
 interface Props {
@@ -9,47 +9,75 @@ interface Props {
   onJumpToMessage?: (messageId: string) => void;
 }
 
+const formatTimeAgo = (dateStr?: string): string => {
+  if (!dateStr) return "";
+  const date = new Date(dateStr);
+  if (isNaN(date.getTime())) return "";
+  const now = new Date();
+  const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+  if (seconds < 60) return "Just now";
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `${days}d ago`;
+  return date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+};
+
+const formatClockTime = (dateStr?: string): string => {
+  const date = dateStr ? new Date(dateStr) : new Date();
+  if (isNaN(date.getTime())) return "";
+  return date.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit", hour12: true });
+};
+
+const ConfidenceBadge = ({ score }: { score: number }) => {
+  const percentage = Math.round(score * 100);
+  let colorStyle = "bg-rose-50 text-rose-700 border-rose-200";
+  let tooltip = "Low confidence (<40%). Partial evidence match — verify against case timeline.";
+  let icon = "⚠️";
+
+  if (score >= 0.75) {
+    colorStyle = "bg-emerald-50 text-emerald-700 border-emerald-200";
+    tooltip = "High confidence (75%+). Grounded in multiple matching evidence sources.";
+    icon = "✓";
+  } else if (score >= 0.4) {
+    colorStyle = "bg-amber-50 text-amber-700 border-amber-200";
+    tooltip = "Moderate confidence (40-74%). Grounded in limited message context.";
+    icon = "⚡";
+  }
+
+  return (
+    <div
+      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border cursor-help shrink-0 ${colorStyle}`}
+      title={tooltip}
+    >
+      <span>{icon}</span>
+      <span>{percentage}% Confidence</span>
+    </div>
+  );
+};
+
 export const AIAssistantPanel = ({ caseId, onClose, onJumpToMessage }: Props): JSX.Element => {
   const scope = caseId ? "case" : "knowledge";
   const [threads, setThreads] = useState<AIConversation[]>([]);
   const [conversation, setConversation] = useState<AIConversation | null>(null);
   const [question, setQuestion] = useState("");
-  const [answers, setAnswers] = useState<Array<AIAnswer & { question: string }>>([]);
+  const [answers, setAnswers] = useState<Array<AIAnswer & { question: string; timestamp?: string }>>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [insights, setInsights] = useState<AIInsight[]>([]);
   const [isSummaryModalOpen, setIsSummaryModalOpen] = useState(false);
 
   useEffect(() => {
     aiService.listConversations(scope, caseId).then(setThreads).catch(() => setThreads([]));
-    if (caseId) aiService.listInsights(caseId).then(setInsights).catch(() => setInsights([]));
   }, [scope, caseId]);
-
-  const scanContradictions = async () => {
-    if (!caseId) return;
-    try {
-      await aiService.scanContradictions(caseId);
-      setError("Contradiction scan queued. Findings appear after indexing completes.");
-    } catch (err: any) {
-      setError(err?.response?.data?.message || "Could not start contradiction scan");
-    }
-  };
-
-  const updateInsight = async (insightId: string, status: "reviewed" | "dismissed") => {
-    try {
-      const changed = await aiService.updateInsight(insightId, status);
-      setInsights((all) => all.map((item) => (item._id === insightId ? changed : item)));
-    } catch {
-      setError("Could not update finding");
-    }
-  };
 
   const selectThread = async (id: string) => {
     try {
       const item = await aiService.getConversation(id);
       setConversation(item);
       const turns = item.turns || [];
-      const restored: Array<AIAnswer & { question: string }> = [];
+      const restored: Array<AIAnswer & { question: string; timestamp?: string }> = [];
       for (let index = 0; index < turns.length; index += 2) {
         const userTurn = turns[index];
         const assistantTurn = turns[index + 1];
@@ -60,6 +88,7 @@ export const AIAssistantPanel = ({ caseId, onClose, onJumpToMessage }: Props): J
             citations: assistantTurn.citations || [],
             confidence: assistantTurn.confidence || 0,
             conversationId: item._id,
+            timestamp: item.updatedAt,
           });
         }
       }
@@ -75,16 +104,17 @@ export const AIAssistantPanel = ({ caseId, onClose, onJumpToMessage }: Props): J
     if (!customPrompt) setQuestion("");
     setLoading(true);
     setError("");
+    const nowIso = new Date().toISOString();
     try {
       const response = await aiService.askCaseAssistant(caseId!, textToAsk, conversation?._id);
-      setAnswers((previous) => [...previous, { ...response, question: textToAsk }]);
+      setAnswers((previous) => [...previous, { ...response, question: textToAsk, timestamp: nowIso }]);
       if (!conversation) {
         const created = await aiService.getConversation(response.conversationId);
         setConversation(created);
         setThreads((previous) => [created, ...previous]);
       }
     } catch (err: any) {
-      setError(err?.response?.data?.message || "AI assistant unavailable. Ensure Ollama and ChromaDB are running.");
+      setError(err?.response?.data?.message || "AI assistant unavailable. Ensure AI backend service is running.");
     } finally {
       setLoading(false);
     }
@@ -100,9 +130,24 @@ export const AIAssistantPanel = ({ caseId, onClose, onJumpToMessage }: Props): J
       {/* Panel Header */}
       <div className="flex items-center justify-between border-b border-slate-100 p-4 bg-slate-50/50">
         <div className="flex items-center space-x-2">
-          <div className="p-2 rounded-xl bg-[#5B4CF3] text-white">
-            <Sparkles className="w-4 h-4" />
-          </div>
+          {answers.length > 0 ? (
+            <button
+              type="button"
+              onClick={() => {
+                setConversation(null);
+                setAnswers([]);
+              }}
+              className="p-1.5 rounded-lg text-slate-500 hover:bg-slate-200/80 hover:text-slate-900 transition-colors"
+              title="Back to AI Home"
+              aria-label="Back to AI Home"
+            >
+              <ArrowLeft className="w-4 h-4" />
+            </button>
+          ) : (
+            <div className="p-2 rounded-xl bg-[#5B4CF3] text-white">
+              <Sparkles className="w-4 h-4" />
+            </div>
+          )}
           <div>
             <h2 className="font-bold text-sm text-slate-900">{caseId ? "AI Case Assistant" : "Knowledge Assistant"}</h2>
             <p className="text-[11px] text-slate-500">Grounded evidence RAG reasoning</p>
@@ -118,14 +163,14 @@ export const AIAssistantPanel = ({ caseId, onClose, onJumpToMessage }: Props): J
         </button>
       </div>
 
-      {/* Top AI Actions Bar: AI Summary + New Conversation */}
-      <div className="border-b border-slate-100 p-3 space-y-2 bg-slate-50/30">
-        <div className="grid grid-cols-2 gap-2">
+      {/* Top Actions Bar */}
+      <div className="border-b border-slate-100 p-3 space-y-2 bg-slate-50/50">
+        <div className="flex items-center gap-2">
           {caseId && (
             <button
               type="button"
               onClick={() => setIsSummaryModalOpen(true)}
-              className="flex items-center justify-center space-x-1.5 px-3 py-2 rounded-xl bg-gradient-to-r from-[#5B4CF3] to-indigo-600 hover:from-[#4c3ed8] hover:to-indigo-700 text-white text-xs font-semibold shadow-xs hover:shadow-md transition-all active:scale-95 cursor-pointer"
+              className="flex-1 flex items-center justify-center space-x-1.5 px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shadow-2xs transition-all active:scale-98 cursor-pointer"
             >
               <Sparkles className="w-3.5 h-3.5" />
               <span>AI Summary</span>
@@ -138,30 +183,33 @@ export const AIAssistantPanel = ({ caseId, onClose, onJumpToMessage }: Props): J
               setConversation(null);
               setAnswers([]);
             }}
-            className={`flex items-center justify-center space-x-1.5 px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-all active:scale-95 cursor-pointer ${
-              !caseId ? "col-span-2" : ""
-            }`}
+            className="flex-1 flex items-center justify-center space-x-1.5 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-all active:scale-98 cursor-pointer"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>New Chat</span>
           </button>
         </div>
 
+        {/* Past Threads */}
         {threads.length > 0 && (
-          <div className="mt-2 max-h-28 overflow-y-auto space-y-1">
+          <div className="mt-2 max-h-32 overflow-y-auto space-y-1 pr-0.5">
             <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-1">Past Threads</span>
             {threads.map((thread) => (
               <button
                 key={thread._id}
                 type="button"
                 onClick={() => void selectThread(thread._id)}
-                className={`block w-full truncate rounded-lg px-2.5 py-1.5 text-left text-xs font-medium transition-colors ${
+                className={`flex items-center justify-between w-full rounded-lg px-2.5 py-1.5 text-left text-xs font-medium transition-colors ${
                   conversation?._id === thread._id
-                    ? "bg-indigo-50 text-indigo-700 font-semibold"
+                    ? "bg-indigo-50 text-indigo-700 font-semibold border border-indigo-100"
                     : "text-slate-600 hover:bg-slate-100"
                 }`}
               >
-                {thread.title || "Untitled conversation"}
+                <span className="truncate flex-1 min-w-0">{thread.title || "Untitled conversation"}</span>
+                <span className="text-[10px] text-slate-400 shrink-0 ml-2 font-normal flex items-center gap-0.5">
+                  <Clock className="w-2.5 h-2.5 text-slate-400" />
+                  {formatTimeAgo(thread.updatedAt)}
+                </span>
               </button>
             ))}
           </div>
@@ -171,13 +219,13 @@ export const AIAssistantPanel = ({ caseId, onClose, onJumpToMessage }: Props): J
       {/* Main Conversation Stream */}
       <div className="flex-1 space-y-4 overflow-y-auto p-4">
         {answers.length === 0 && (
-          <div className="text-center py-8 space-y-3">
+          <div className="text-center py-6 space-y-3">
             <div className="w-12 h-12 rounded-full bg-indigo-50 text-indigo-600 mx-auto flex items-center justify-center">
               <MessageSquare className="w-6 h-6" />
             </div>
             <div className="max-w-xs mx-auto">
               <h3 className="text-xs font-bold text-slate-800">Ask AI anything about this case</h3>
-              <p className="text-[11px] text-slate-500 mt-1">
+              <p className="text-[11px] text-slate-500 mt-1 leading-relaxed">
                 Query evidence, extracted dates, figures, witness statements, or generate full AI Case Summaries.
               </p>
             </div>
@@ -186,51 +234,79 @@ export const AIAssistantPanel = ({ caseId, onClose, onJumpToMessage }: Props): J
 
         {answers.map((item, index) => (
           <div key={`${item.conversationId}-${index}`} className="space-y-2 text-xs">
-            <div className="rounded-xl bg-slate-100 p-3 text-slate-800 font-medium ml-4">
-              {item.question}
+            {/* User Question Bubble */}
+            <div className="flex flex-col items-end gap-1">
+              <div className="rounded-xl bg-slate-100 p-3 text-slate-800 font-medium max-w-[90%]">
+                {item.question}
+              </div>
+              <span className="text-[9px] text-slate-400 px-1 font-medium">
+                {formatClockTime(item.timestamp)}
+              </span>
             </div>
-            <div className="rounded-xl bg-indigo-50/80 border border-indigo-100 p-3 text-slate-900 space-y-2">
-              <div className="prose prose-xs max-w-none text-slate-800 leading-relaxed whitespace-pre-wrap">
+
+            {/* AI Response Card */}
+            <div className="rounded-xl bg-slate-50/80 border border-slate-200/80 p-3.5 text-slate-900 space-y-3 shadow-2xs">
+              <div className="flex items-center justify-between pb-2 border-b border-slate-200/60">
+                <div className="flex items-center gap-1.5 text-indigo-700 font-bold text-xs">
+                  <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
+                  <span>AI Response</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  {item.confidence !== undefined && (
+                    <ConfidenceBadge score={item.confidence} />
+                  )}
+                  <span className="text-[10px] text-slate-400 font-medium">
+                    {formatClockTime(item.timestamp)}
+                  </span>
+                </div>
+              </div>
+
+              {/* Answer Text Block */}
+              <div className="prose prose-xs max-w-none text-slate-800 leading-relaxed whitespace-pre-wrap font-sans">
                 {item.answer}
               </div>
-              
-              <div className="pt-2 border-t border-indigo-100/80 flex items-center justify-between">
-                {item.citations && item.citations.length > 0 ? (
-                  <div className="flex flex-wrap gap-1">
+
+              {/* Sources & Grounded Evidence Section */}
+              {item.citations && item.citations.length > 0 && (
+                <div className="mt-3 pt-2.5 border-t border-slate-200/70 flex flex-col gap-1.5 w-full">
+                  <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                    <span>Sources & Evidence ({item.citations.length})</span>
+                    <span className="text-[10px] font-normal text-slate-400">Click to jump in chat</span>
+                  </div>
+                  <div className="flex flex-col gap-1.5 max-h-40 overflow-y-auto pr-1">
                     {item.citations.map((citation, citationIndex) => (
                       <button
                         key={`${citation.sourceId}-${citationIndex}`}
                         type="button"
                         onClick={() => useCitation(citation)}
-                        className="inline-flex items-center gap-1 rounded-md bg-white border border-indigo-200 px-2 py-0.5 text-[10px] font-semibold text-indigo-700 hover:bg-indigo-100 transition-colors"
+                        className="flex items-center justify-between w-full p-2 rounded-lg bg-white border border-slate-200/80 hover:border-indigo-300 hover:bg-indigo-50/60 transition-all text-left group cursor-pointer shadow-2xs"
+                        title="Click to jump and highlight this message in main chat"
                       >
-                        <span>[{citationIndex + 1}] {citation.label}</span>
-                        <ArrowUpRight className="w-2.5 h-2.5" />
+                        <div className="flex items-center gap-2 overflow-hidden min-w-0 flex-1">
+                          <span className="shrink-0 w-5 h-5 rounded-md bg-indigo-100 text-indigo-700 font-bold text-[10px] flex items-center justify-center">
+                            [{citationIndex + 1}]
+                          </span>
+                          <span className="text-xs font-semibold text-slate-800 truncate">
+                            {citation.label}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1 shrink-0 text-indigo-600 font-bold text-[10px] pl-1 group-hover:translate-x-0.5 transition-transform">
+                          <span>Jump</span>
+                          <ArrowUpRight className="w-3 h-3" />
+                        </div>
                       </button>
                     ))}
                   </div>
-                ) : (
-                  <div /> // Empty div for flex space-between
-                )}
-                
-                {item.confidence !== undefined && (
-                  <div className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
-                    item.confidence >= 0.7 ? 'text-green-700 bg-green-100' : 
-                    item.confidence >= 0.4 ? 'text-amber-700 bg-amber-100' : 
-                    'text-red-700 bg-red-100'
-                  }`}>
-                    {Math.round(item.confidence * 100)}% Confidence
-                  </div>
-                )}
-              </div>
+                </div>
+              )}
             </div>
           </div>
         ))}
 
         {loading && (
-          <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 flex items-center space-x-2 text-xs text-slate-500">
-            <Sparkles className="w-4 h-4 text-indigo-500 animate-spin" />
-            <span>Retrieving grounded evidence & reasoning…</span>
+          <div className="p-3 rounded-xl bg-indigo-50/60 border border-indigo-100 flex items-center space-x-2 text-xs text-indigo-700">
+            <Sparkles className="w-4 h-4 text-indigo-600 animate-spin shrink-0" />
+            <span className="font-medium">Retrieving grounded evidence & reasoning…</span>
           </div>
         )}
 
@@ -238,53 +314,6 @@ export const AIAssistantPanel = ({ caseId, onClose, onJumpToMessage }: Props): J
           <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-xs text-red-600">
             {error}
           </div>
-        )}
-
-        {/* Contradictions Section */}
-        {caseId && (
-          <section className="border-t border-slate-100 pt-3">
-            <div className="flex items-center justify-between">
-              <h3 className="text-xs font-bold text-slate-700 flex items-center gap-1">
-                <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />
-                <span>Potential Contradictions</span>
-              </h3>
-              <button
-                type="button"
-                onClick={() => void scanContradictions()}
-                className="text-xs font-semibold text-indigo-600 hover:underline"
-              >
-                Scan
-              </button>
-            </div>
-            {insights.filter((item) => item.status !== "invalidated").length === 0 ? (
-              <p className="text-[11px] text-slate-400 italic mt-1">No active contradictions found.</p>
-            ) : (
-              insights
-                .filter((item) => item.status !== "invalidated")
-                .map((item) => (
-                  <div key={item._id} className="mt-2 rounded-xl border border-amber-200 bg-amber-50/60 p-2.5 text-xs">
-                    <p className="font-semibold text-amber-900">{item.title}</p>
-                    <p className="mt-1 text-slate-600 text-[11px]">{item.description}</p>
-                    <div className="mt-2 space-x-2">
-                      <button
-                        type="button"
-                        onClick={() => void updateInsight(item._id, "reviewed")}
-                        className="font-semibold text-indigo-700 hover:underline"
-                      >
-                        Review
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => void updateInsight(item._id, "dismissed")}
-                        className="text-slate-500 hover:underline"
-                      >
-                        Dismiss
-                      </button>
-                    </div>
-                  </div>
-                ))
-            )}
-          </section>
         )}
       </div>
 
@@ -306,12 +335,16 @@ export const AIAssistantPanel = ({ caseId, onClose, onJumpToMessage }: Props): J
             }
           }}
           rows={3}
-          placeholder="Ask about evidence, dates, entities…"
-          className="w-full resize-none rounded-xl border border-slate-200 p-2.5 text-xs text-slate-900 focus:outline-none focus:border-indigo-500"
+          placeholder={
+            answers.length > 0
+              ? "Ask a follow-up question in this thread..."
+              : "Ask about evidence, dates, entities…"
+          }
+          className="w-full resize-none rounded-xl border border-slate-200 p-2.5 text-xs text-slate-900 focus:outline-none focus:border-indigo-600 focus:ring-2 focus:ring-indigo-600/10 placeholder:text-slate-400"
         />
         <button
           disabled={loading || !question.trim()}
-          className="mt-2 w-full rounded-xl bg-[#5B4CF3] hover:bg-[#4c3ed8] px-3 py-2 text-xs font-semibold text-white disabled:opacity-50 transition-colors shadow-xs"
+          className="mt-2 w-full rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 px-3 py-2 text-xs font-bold text-white disabled:opacity-40 transition-all shadow-xs active:scale-98"
         >
           Ask AI
         </button>

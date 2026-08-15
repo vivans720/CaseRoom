@@ -117,7 +117,7 @@ export const useCases = (): UseCasesReturn => {
 
     const handleMessageRead = (payload: MessageReadPayload) => {
       console.log("[useCases] message_read received:", payload);
-      // Optimistic update: clear count for this case immediately
+      // Update count for this case immediately
       const caseId =
         typeof payload.caseId === "string"
           ? payload.caseId
@@ -130,8 +130,6 @@ export const useCases = (): UseCasesReturn => {
           [caseId]: 0,
         }));
       }
-      // Sync with server in background
-      refreshUnreadCounts().catch(console.error);
     };
 
     console.log("[useCases] Registering socket listeners");
@@ -143,7 +141,7 @@ export const useCases = (): UseCasesReturn => {
       socket.off("new_message", handleNewMessage);
       socket.off("message_read", handleMessageRead);
     };
-  }, [socket, user, refreshUnreadCounts]);
+  }, [socket, user]);
 
   const createCase = useCallback(
     async (title: string, description?: string): Promise<Case> => {

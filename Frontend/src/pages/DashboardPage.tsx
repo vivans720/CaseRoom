@@ -12,6 +12,7 @@ import { TaskPanel } from "../components/tasks/TaskPanel";
 import { AIAssistantPanel } from "../components/chat/AIAssistantPanel";
 import { SimilarCasesPanel } from "../components/cases/SimilarCasesPanel";
 import { AIInsightPanel } from "../components/chat/AIInsightPanel";
+import { MeetingHistoryPanel } from "../components/meeting/MeetingHistoryPanel";
 import { usePresence } from "../hooks/usePresence";
 import type { User } from "../types";
 import type {
@@ -42,15 +43,8 @@ const NoCaseSelected = ({ onOpenCreateCase }: NoCaseSelectedProps): JSX.Element 
     <div className="relative z-10 w-full max-w-lg">
       <EmptyState
         title="Select a case to get started"
-        description="Choose an active IT case from the sidebar or create a new case to start collaborating with your team."
+        description="Choose an active case from the sidebar or create a new investigation to collaborate in real-time."
         action={onOpenCreateCase ? { label: "New Case", onClick: onOpenCreateCase } : undefined}
-        secondaryAction={{
-          label: "Filter Sidebar",
-          onClick: () => {
-            const input = document.querySelector('input[type="search"]') as HTMLInputElement
-            input?.focus()
-          }
-        }}
       />
     </div>
   </div>
@@ -125,6 +119,10 @@ const renderRightPanel = (
 
   if (panel === "insights") {
     return <AIInsightPanel caseId={caseId} onClose={() => onToggle("insights")} />;
+  }
+
+  if (panel === "meetings") {
+    return <MeetingHistoryPanel caseId={caseId} onClose={() => onToggle("meetings")} />;
   }
 
   const _exhaustive: never = panel;

@@ -309,6 +309,7 @@ export const ChatView = (): JSX.Element => {
         onTogglePanel={togglePanel}
         onlineUserIds={onlineUserIds}
         onCaseLoaded={(data) => setIsArchived(data.status === "archived")}
+        onJumpToMessage={setJumpToMessageId}
       />
 
       <PinnedMessageBanner 

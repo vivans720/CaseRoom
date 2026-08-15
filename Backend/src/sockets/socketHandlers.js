@@ -5,6 +5,7 @@ const {
   createMessage,
   resolveMentionedUserIds,
   markMessagesAsRead,
+  markAllMessagesAsReadInCase,
   deleteMessage,
   editMessage,
   toggleReaction,
@@ -296,27 +297,27 @@ const handleDisconnect = (io, socket) => async () => {
 const handleMarkRead =
   (io, socket) =>
   async ({ caseId, messageIds }) => {
-    if (
-      !caseId ||
-      !messageIds ||
-      !Array.isArray(messageIds) ||
-      messageIds.length === 0
-    )
-      return;
+    if (!caseId) return;
 
     try {
-      const result = await markMessagesAsRead(
-        socket.user._id,
-        caseId,
-        messageIds,
-      );
-      if (result.modifiedCount > 0) {
-        io.to(getRoomName(caseId)).emit("message_read", {
+      if (Array.isArray(messageIds) && messageIds.length > 0) {
+        await markMessagesAsRead(
+          socket.user._id,
           caseId,
-          userId: socket.user._id,
           messageIds,
-        });
+        );
+      } else {
+        await markAllMessagesAsReadInCase(
+          socket.user._id,
+          caseId,
+        );
       }
+
+      io.to(getRoomName(caseId)).emit("message_read", {
+        caseId,
+        userId: socket.user._id,
+        messageIds: messageIds || [],
+      });
     } catch (error) {
       console.error("Failed to mark messages as read:", error);
     }

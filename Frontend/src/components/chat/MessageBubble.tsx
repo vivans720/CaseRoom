@@ -3,6 +3,9 @@ import type { Message, User, Reaction } from "../../types";
 import { Avatar } from "../ui/Avatar";
 import { DocumentPreviewModal } from "./DocumentPreviewModal";
 import { useMeeting } from "../../hooks/useMeeting";
+import { useSocketContext } from "../../contexts/SocketContext";
+import { getActiveMeeting } from "../../services/meetingService";
+import { Video, Check, Users, Clock } from "lucide-react";
 
 interface MessageBubbleProps {
   message: Message;
@@ -332,56 +335,154 @@ const FileAttachment = ({
   );
 };
 
-const MeetingCard = ({
-  message,
-}: {
-  message: Message;
-}): JSX.Element => {
+const MeetingCard = ({ message }: { message: Message }): JSX.Element => {
   const { joinMeeting, isInMeeting, meetingCaseId } = useMeeting();
+  const { socket } = useSocketContext();
   const caseIdStr =
     typeof message.caseId === "object" ? message.caseId._id : message.caseId;
   const senderName = getSenderName(message.senderId);
   const isInThisMeeting = isInMeeting && meetingCaseId === caseIdStr;
+  const time = formatTime(message.createdAt);
+
+  const [hasActiveMeeting, setHasActiveMeeting] = useState(false);
+  const [activeParticipants, setActiveParticipants] = useState<number>(0);
+
+  const checkStatus = async () => {
+    if (!caseIdStr) return;
+    try {
+      const active = await getActiveMeeting(caseIdStr);
+      if (active) {
+        setHasActiveMeeting(true);
+        setActiveParticipants(active.activeParticipants || 0);
+      } else {
+        setHasActiveMeeting(false);
+        setActiveParticipants(0);
+      }
+    } catch {
+      setHasActiveMeeting(false);
+    }
+  };
+
+  useEffect(() => {
+    void checkStatus();
+  }, [caseIdStr]);
+
+  useEffect(() => {
+    if (!socket) return;
+
+    const onMeetingStarted = () => {
+      setHasActiveMeeting(true);
+      void checkStatus();
+    };
+
+    const onMeetingEnded = () => {
+      setHasActiveMeeting(false);
+      setActiveParticipants(0);
+    };
+
+    const onUserJoined = () => {
+      setHasActiveMeeting(true);
+      setActiveParticipants((prev) => prev + 1);
+    };
+
+    const onUserLeft = () => {
+      setActiveParticipants((prev) => Math.max(0, prev - 1));
+    };
+
+    socket.on("meeting:started", onMeetingStarted);
+    socket.on("meeting:ended", onMeetingEnded);
+    socket.on("meeting:user-joined", onUserJoined);
+    socket.on("meeting:user-left", onUserLeft);
+
+    return () => {
+      socket.off("meeting:started", onMeetingStarted);
+      socket.off("meeting:ended", onMeetingEnded);
+      socket.off("meeting:user-joined", onUserJoined);
+      socket.off("meeting:user-left", onUserLeft);
+    };
+  }, [socket]);
 
   return (
-    <div className="flex flex-col gap-2.5 p-3 rounded-xl bg-purple-500/10 border border-purple-500/20 my-1 min-w-[240px]">
-      <div className="flex items-center gap-2.5">
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-r from-[#5B4CF3] to-[#8B2EFF] text-white shadow-md">
-          <svg
-            className="h-5 w-5"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={2}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <polygon points="23 7 16 12 23 17 23 7" />
-            <rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
-          </svg>
+    <div className="flex flex-col gap-3 p-4 rounded-2xl bg-white border border-indigo-200/90 shadow-md text-slate-900 min-w-[270px] sm:min-w-[320px]">
+      {/* Header with Call Icon & Status */}
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-[#5B4CF3] border border-indigo-100/80 shadow-2xs">
+            <Video className="w-4 h-4" />
+          </div>
+          <div className="flex flex-col min-w-0">
+            <span className="text-xs font-extrabold text-slate-900 tracking-tight">
+              Video Meeting
+            </span>
+            <span className="text-[11px] text-slate-500 truncate">
+              {senderName} started a call
+            </span>
+          </div>
         </div>
-        <div className="flex flex-col min-w-0">
-          <span className="text-xs font-extrabold tracking-tight">Video Meeting</span>
-          <span className="text-[11px] opacity-75 truncate">{senderName} started a call</span>
-        </div>
+
+        {/* Live vs Ended pill */}
+        {hasActiveMeeting ? (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-extrabold shrink-0">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span>Live Now</span>
+          </span>
+        ) : (
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200 text-[10px] font-semibold shrink-0">
+            <span>Call Ended</span>
+          </span>
+        )}
       </div>
 
-      <button
-        type="button"
-        onClick={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          void joinMeeting(caseIdStr);
-        }}
-        disabled={isInThisMeeting}
-        className={`flex items-center justify-center gap-2 rounded-xl py-2 px-3 text-xs font-bold transition-all shadow-xs ${
-          isInThisMeeting
-            ? "bg-emerald-500/20 text-emerald-600 border border-emerald-500/30 cursor-default"
-            : "bg-gradient-to-r from-[#5B4CF3] to-[#8B2EFF] text-white hover:opacity-90 active:scale-95"
-        }`}
-      >
-        {isInThisMeeting ? "● In Meeting" : "Join Meeting"}
-      </button>
+      {/* Participant count if live */}
+      {hasActiveMeeting && activeParticipants > 0 && (
+        <div className="flex items-center gap-1.5 text-[11px] font-medium text-slate-600 bg-slate-50 px-2.5 py-1.5 rounded-xl border border-slate-100">
+          <Users className="w-3.5 h-3.5 text-slate-400" />
+          <span>
+            {activeParticipants} participant{activeParticipants !== 1 ? "s" : ""} currently in call
+          </span>
+        </div>
+      )}
+
+      {/* CTA Button */}
+      {hasActiveMeeting ? (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            void joinMeeting(caseIdStr);
+          }}
+          disabled={isInThisMeeting}
+          className={`w-full flex items-center justify-center gap-2 rounded-xl py-2.5 px-4 text-xs font-bold transition-all shadow-xs cursor-pointer ${
+            isInThisMeeting
+              ? "bg-emerald-50 text-emerald-700 border border-emerald-200 cursor-default"
+              : "bg-gradient-to-r from-[#5B4CF3] to-indigo-600 hover:from-[#4c3ed8] hover:to-indigo-700 text-white active:scale-98"
+          }`}
+        >
+          {isInThisMeeting ? (
+            <>
+              <Check className="w-3.5 h-3.5" />
+              <span>Connected to Call</span>
+            </>
+          ) : (
+            <>
+              <Video className="w-3.5 h-3.5" />
+              <span>Join Call</span>
+            </>
+          )}
+        </button>
+      ) : (
+        <div className="w-full text-center py-2 px-3 rounded-xl bg-slate-50 border border-slate-200/60 text-xs font-medium text-slate-500">
+          Meeting has concluded
+        </div>
+      )}
+
+      {/* Timestamp footer */}
+      <div className="flex items-center justify-end border-t border-slate-100 pt-1.5 -mb-0.5">
+        <span className="text-[10px] text-slate-400 font-medium uppercase">
+          {time}
+        </span>
+      </div>
     </div>
   );
 };
@@ -598,54 +699,24 @@ const MessageActionButtons = ({
   togglePinnedPicker,
   handleCopy,
 }: MessageActionButtonsProps): JSX.Element | null => {
+  const [moreOpen, setMoreOpen] = useState(false);
+  const moreRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!moreOpen) return;
+    const handleClick = (e: MouseEvent) => {
+      if (moreRef.current && !moreRef.current.contains(e.target as Node)) {
+        setMoreOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [moreOpen]);
+
   if (message.isDeleted) return null;
 
   return (
-    <div className="flex items-center gap-1 sm:gap-2 transition-opacity opacity-100 md:opacity-0 md:group-hover:opacity-100">
-      {(onPin || onUnpin) && !isArchived && (
-        <button
-          title={message.isPinned ? "Unpin message" : "Pin message"}
-          onClick={() => (message.isPinned ? onUnpin?.(message) : onPin?.(message))}
-          className={`text-text-tertiary hover:text-primary rounded-full p-1 ${message.isPinned ? "text-primary bg-primary/10" : ""}`}
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <line x1="12" y1="17" x2="12" y2="22"></line>
-            <path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.68V6a3 3 0 1 0-6 0v4.68a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"></path>
-          </svg>
-        </button>
-      )}
-      {onReply && (
-        <button
-          title="Reply"
-          onClick={() => onReply(message)}
-          className="text-text-tertiary hover:text-primary rounded-full p-1"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <polyline points="9 17 4 12 9 7"></polyline>
-            <path d="M20 18v-2a4 4 0 0 0-4-4H4"></path>
-          </svg>
-        </button>
-      )}
+    <div className="flex items-center gap-0.5 p-0.5 rounded-full bg-white/90 border border-slate-200/80 shadow-xs backdrop-blur-xs transition-opacity opacity-100 md:opacity-0 md:group-hover:opacity-100 relative">
       {!isArchived && (
         <button
           title="React"
@@ -653,110 +724,107 @@ const MessageActionButtons = ({
           onMouseEnter={openPicker}
           onMouseLeave={schedulePickerClose}
           onClick={togglePinnedPicker}
-          className="text-text-tertiary hover:text-primary rounded-full p-1"
+          className="p-1 rounded-full text-slate-500 hover:text-indigo-600 hover:bg-slate-100 transition-colors"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <circle cx="12" cy="12" r="10"></circle>
-            <path d="M8 14s1.5 2 4 2 4-2 4-2"></path>
-            <line x1="9" y1="9" x2="9.01" y2="9"></line>
-            <line x1="15" y1="9" x2="15.01" y2="9"></line>
+          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <circle cx="12" cy="12" r="10" />
+            <path d="M8 14s1.5 2 4 2 4-2 4-2" />
+            <line x1="9" y1="9" x2="9.01" y2="9" />
+            <line x1="15" y1="9" x2="15.01" y2="9" />
           </svg>
         </button>
       )}
-      {message.content && (
+
+      {onReply && (
         <button
-          title={copied ? "Copied" : "Copy message"}
-          onClick={handleCopy}
-          className="text-text-tertiary hover:text-primary rounded-full p-1"
+          title="Reply"
+          onClick={() => onReply(message)}
+          className="p-1 rounded-full text-slate-500 hover:text-indigo-600 hover:bg-slate-100 transition-colors"
         >
-          {copied ? (
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="text-emerald-500 animate-in zoom-in-50 duration-200"
-            >
-              <polyline points="20 6 9 17 4 12"></polyline>
-            </svg>
-          ) : (
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-            </svg>
-          )}
-        </button>
-      )}
-      {isOwn && onEdit && !isArchived && (
-        <button
-          title="Edit message"
-          onClick={() => onEdit(message)}
-          className="text-text-tertiary hover:text-primary rounded-full p-1"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M12 20h9" />
-            <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />
+          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <polyline points="9 17 4 12 9 7" />
+            <path d="M20 18v-2a4 4 0 0 0-4-4H4" />
           </svg>
         </button>
       )}
-      {isOwn && onDelete && !isArchived && (
+
+      <div className="relative" ref={moreRef}>
         <button
-          title="Delete for everyone"
-          onClick={() => onDelete(message)}
-          className="text-text-tertiary hover:text-danger rounded-full p-1"
+          title="More actions"
+          onClick={() => setMoreOpen((prev) => !prev)}
+          className="p-1 rounded-full text-slate-500 hover:text-indigo-600 hover:bg-slate-100 transition-colors"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M3 6h18"></path>
-            <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
-            <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <circle cx="12" cy="12" r="1" />
+            <circle cx="19" cy="12" r="1" />
+            <circle cx="5" cy="12" r="1" />
           </svg>
         </button>
-      )}
+
+        {moreOpen && (
+          <div
+            className={`absolute z-30 bottom-full mb-1 ${
+              isOwn ? "right-0" : "left-0"
+            } w-36 py-1 rounded-xl bg-white border border-slate-200 shadow-lg text-xs font-semibold text-slate-700 flex flex-col gap-0.5 animate-in fade-in zoom-in-95 duration-100`}
+          >
+            {message.content && (
+              <button
+                type="button"
+                onClick={() => {
+                  handleCopy();
+                  setMoreOpen(false);
+                }}
+                className="flex items-center gap-2 px-3 py-1.5 hover:bg-slate-50 text-left transition-colors"
+              >
+                <span>{copied ? "✓ Copied" : "Copy text"}</span>
+              </button>
+            )}
+
+            {(onPin || onUnpin) && !isArchived && (
+              <button
+                type="button"
+                onClick={() => {
+                  if (message.isPinned) {
+                    onUnpin?.(message);
+                  } else {
+                    onPin?.(message);
+                  }
+                  setMoreOpen(false);
+                }}
+                className="flex items-center gap-2 px-3 py-1.5 hover:bg-slate-50 text-left transition-colors"
+              >
+                <span>{message.isPinned ? "Unpin message" : "Pin message"}</span>
+              </button>
+            )}
+
+            {isOwn && onEdit && !isArchived && (
+              <button
+                type="button"
+                onClick={() => {
+                  onEdit(message);
+                  setMoreOpen(false);
+                }}
+                className="flex items-center gap-2 px-3 py-1.5 hover:bg-slate-50 text-left transition-colors"
+              >
+                <span>Edit message</span>
+              </button>
+            )}
+
+            {isOwn && onDelete && !isArchived && (
+              <button
+                type="button"
+                onClick={() => {
+                  onDelete(message);
+                  setMoreOpen(false);
+                }}
+                className="flex items-center gap-2 px-3 py-1.5 hover:bg-rose-50 text-rose-600 text-left transition-colors"
+              >
+                <span>Delete</span>
+              </button>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 };
@@ -897,7 +965,7 @@ export const MessageBubble = ({
 
         <div className={`flex flex-col gap-0.5 max-w-[80%] sm:max-w-[440px] relative`}>
           {!isOwn && showSender && (
-            <span className="text-xs font-medium text-text-secondary ml-1">
+            <span className="text-xs font-semibold text-slate-600 ml-1">
               {senderName}
             </span>
           )}
@@ -927,9 +995,10 @@ export const MessageBubble = ({
             >
               <div
                 className={`
-                  msg-bubble px-3.5 py-2 shadow-xs rounded-2xl
-                  ${showSender ? (isOwn ? "rounded-tr-none msg-bubble-tail-own" : "rounded-tl-none msg-bubble-tail-received") : ""}
-                  ${message.isDeleted ? "bg-slate-100 text-slate-400" : isOwn ? "bg-gradient-to-r from-[#5B4CF3] to-[#7B3BF8] text-white" : "bg-slate-100/90 text-slate-900 border border-slate-200/60"}
+                  msg-bubble shadow-xs
+                  ${message.type === "meeting_started" ? "p-0 bg-transparent shadow-none border-0" : "px-3.5 py-2 rounded-2xl"}
+                  ${message.type !== "meeting_started" && showSender ? (isOwn ? "rounded-tr-none msg-bubble-tail-own" : "rounded-tl-none msg-bubble-tail-received") : ""}
+                  ${message.type !== "meeting_started" ? (message.isDeleted ? "bg-slate-100 text-slate-400" : isOwn ? "bg-gradient-to-r from-[#5B4CF3] to-[#7B3BF8] text-white" : "bg-slate-100/90 text-slate-900 border border-slate-200/60") : ""}
                 `}
               >
                 <div className="flex flex-col gap-0.5 min-w-15">
@@ -945,19 +1014,21 @@ export const MessageBubble = ({
                     />
                   )}
                   <MessageContent message={message} isOwn={isOwn} />
-                  <div className="flex items-center gap-1 self-end mt-1 -mb-1">
-                    {message.editedAt && !message.isDeleted && (
-                      <span className="text-[10px] opacity-70 font-medium">
-                        Edited
+                  {message.type !== "meeting_started" && (
+                    <div className="flex items-center gap-1 self-end mt-1 -mb-1">
+                      {message.editedAt && !message.isDeleted && (
+                        <span className={`text-[10px] font-medium ${isOwn ? "text-white/80" : "text-slate-500"}`}>
+                          Edited
+                        </span>
+                      )}
+                      <span className={`text-[10px] font-medium uppercase ${isOwn ? "text-white/80" : "text-slate-500"}`}>
+                        {time}
                       </span>
-                    )}
-                    <span className="text-[10px] opacity-70 uppercase font-medium">
-                      {time}
-                    </span>
-                    {!message.isDeleted && (
-                      <ReadReceipt isRead={isRead} isOwn={isOwn} />
-                    )}
-                  </div>
+                      {!message.isDeleted && (
+                        <ReadReceipt isRead={isRead} isOwn={isOwn} />
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
 

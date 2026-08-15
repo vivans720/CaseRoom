@@ -10,9 +10,11 @@ module.exports = {
     vision: false,
   },
   createModel({ temperature = 0.3 } = {}) {
+    const model = process.env.CEREBRAS_MODEL || "llama-3.3-70b";
     return new ChatOpenAI({
       openAIApiKey: process.env.CEREBRAS_API_KEY,
-      modelName: process.env.CEREBRAS_MODEL || "llama-3.3-70b",
+      model,
+      modelName: model,
       temperature,
       configuration: {
         baseURL: "https://api.cerebras.ai/v1",

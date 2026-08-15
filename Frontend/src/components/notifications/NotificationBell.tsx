@@ -56,13 +56,18 @@ export const NotificationBell = (): JSX.Element => {
       <button
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}
-        className="relative rounded-lg p-1.5 text-text-secondary hover:bg-surface-hover hover:text-text-primary"
+        className={`relative rounded-xl p-2 transition-all duration-200 cursor-pointer ${
+          isOpen
+            ? "bg-indigo-50 text-[#5B4CF3]"
+            : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+        }`}
         aria-label="Notifications"
         aria-expanded={isOpen}
+        title="Notifications"
       >
         <BellIcon />
         {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1">
+          <span className="absolute -top-0.5 -right-0.5 pointer-events-none">
             <Badge count={unreadCount} />
           </span>
         )}

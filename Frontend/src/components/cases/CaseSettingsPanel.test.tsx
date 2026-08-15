@@ -17,14 +17,6 @@ vi.mock("../../hooks/useAuth", () => ({
   useAuth: vi.fn(),
 }));
 
-vi.mock("../meeting/MeetingHistoryPanel", () => ({
-  MeetingHistoryPanel: () => <div data-testid="meeting-history-panel" />,
-}));
-
-vi.mock("./SimilarCasesPanel", () => ({
-  SimilarCasesPanel: () => <div data-testid="similar-cases-panel" />,
-}));
-
 const mockNavigate = vi.fn();
 vi.mock("react-router-dom", async (importOriginal) => {
   const actual = await importOriginal<Record<string, unknown>>();

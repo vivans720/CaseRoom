@@ -12,7 +12,7 @@ const AVATAR_COLORS = [
   "bg-[#BE185D]",
 ];
 
-type AvatarSize = "sm" | "md" | "lg" | "xl";
+export type AvatarSize = "xs" | "sm" | "md" | "lg" | "xl";
 
 interface AvatarProps {
   name?: string;
@@ -23,6 +23,7 @@ interface AvatarProps {
 }
 
 const SIZE_CLASSES: Record<AvatarSize, string> = {
+  xs: "w-5 h-5 text-[10px]",
   sm: "w-7 h-7 text-xs",
   md: "w-9 h-9 text-sm",
   lg: "w-11 h-11 text-base",
@@ -30,6 +31,7 @@ const SIZE_CLASSES: Record<AvatarSize, string> = {
 };
 
 const DOT_SIZE_CLASSES: Record<AvatarSize, string> = {
+  xs: "w-2 h-2",
   sm: "w-2.5 h-2.5",
   md: "w-3 h-3",
   lg: "w-3.5 h-3.5",
@@ -67,6 +69,9 @@ export const Avatar = ({
   const initials = getInitials(name);
   const imageError = failedImageSrc === (src ?? null);
 
+  const sizeClass = SIZE_CLASSES[size] || SIZE_CLASSES.md;
+  const dotSizeClass = DOT_SIZE_CLASSES[size] || DOT_SIZE_CLASSES.md;
+
   const isClickable = !!onClick;
   const Wrapper = isClickable ? "button" : "span";
   const wrapperProps = isClickable
@@ -84,7 +89,7 @@ export const Avatar = ({
   return (
     <Wrapper {...wrapperProps}>
       <span
-        className={`${SIZE_CLASSES[size]} ${colorClass} flex items-center justify-center overflow-hidden rounded-full font-semibold text-white`}
+        className={`${sizeClass} ${colorClass} inline-flex items-center justify-center overflow-hidden rounded-full font-semibold text-white shrink-0`}
         title={isClickable ? undefined : name}
         aria-label={isClickable ? undefined : name}
       >
@@ -92,7 +97,7 @@ export const Avatar = ({
           <img
             src={src}
             alt={name}
-            className="h-full w-full object-cover"
+            className="h-full w-full object-cover rounded-full max-w-full max-h-full"
             loading="lazy"
             onError={() => setFailedImageSrc(src ?? null)}
           />
@@ -102,7 +107,7 @@ export const Avatar = ({
       </span>
       {isOnline !== undefined && (
         <span
-          className={`${DOT_SIZE_CLASSES[size]} absolute bottom-0 right-0 rounded-full border-2 border-surface ${
+          className={`${dotSizeClass} absolute bottom-0 right-0 rounded-full border-2 border-surface ${
             isOnline ? "bg-success" : "bg-text-tertiary"
           }`}
           style={
@@ -114,4 +119,3 @@ export const Avatar = ({
     </Wrapper>
   );
 };
-

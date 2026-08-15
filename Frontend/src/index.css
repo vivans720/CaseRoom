@@ -1,44 +1,44 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #5B4CF3;
-  --color-primary-dark: #4B3BD9;
-  --color-primary-light: #f0eeff;
-  --color-primary-lighter: #f7f5ff;
+  --color-primary: #4F46E5;
+  --color-primary-dark: #4338CA;
+  --color-primary-light: #EEF2FF;
+  --color-primary-lighter: #F5F3FF;
 
   --color-surface: #ffffff;
-  --color-surface-secondary: #f8f7fc;
-  --color-surface-tertiary: #f3f1fa;
-  --color-surface-hover: #ece9f8;
+  --color-surface-secondary: #F8FAFC;
+  --color-surface-tertiary: #F1F5F9;
+  --color-surface-hover: #F1F5F9;
 
-  --color-text-primary: #111827;
-  --color-text-secondary: #64748b;
-  --color-text-tertiary: #94a3b8;
+  --color-text-primary: #0F172A;
+  --color-text-secondary: #475569;
+  --color-text-tertiary: #94A3B8;
 
   --color-success: #10b981;
   --color-warning: #f59e0b;
   --color-danger: #ef4444;
 
-  --color-border: #e2e8f0;
-  --color-border-light: #f1f5f9;
+  --color-border: #E2E8F0;
+  --color-border-light: #F1F5F9;
 
-  --color-msg-sent: #5B4CF3;
+  --color-msg-sent: #4F46E5;
   --color-msg-sent-text: #ffffff;
-  --color-msg-received: #f3f1fa;
-  --color-msg-received-text: #111827;
+  --color-msg-received: #F1F5F9;
+  --color-msg-received-text: #0F172A;
 
   --font-sans: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
     sans-serif;
 
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
   --shadow-md:
-    0 4px 6px -1px rgba(91, 76, 243, 0.08),
-    0 2px 4px -2px rgba(0, 0, 0, 0.05);
+    0 4px 6px -1px rgba(15, 23, 42, 0.05),
+    0 2px 4px -2px rgba(0, 0, 0, 0.03);
   --shadow-lg:
-    0 10px 15px -3px rgba(91, 76, 243, 0.12),
-    0 4px 6px -4px rgba(0, 0, 0, 0.04);
+    0 10px 15px -3px rgba(15, 23, 42, 0.08),
+    0 4px 6px -4px rgba(0, 0, 0, 0.03);
 
-  --shadow-msg: 0 2px 8px rgba(91, 76, 243, 0.15);
+  --shadow-msg: 0 1px 3px rgba(0, 0, 0, 0.06);
 
   /* Extra-small breakpoint for narrow phones (360px) */
   --breakpoint-xs: 360px;
