@@ -2,16 +2,18 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/React-19.2-61DAFB?style=for-the-badge&logo=react&logoColor=black" alt="React 19" />
-  <img src="https://img.shields.io/badge/TypeScript-5.x-007ACC?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
+  <img src="https://img.shields.io/badge/TypeScript-6.0-007ACC?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
   <img src="https://img.shields.io/badge/Vite-8.0-646CFF?style=for-the-badge&logo=vite&logoColor=white" alt="Vite" />
   <img src="https://img.shields.io/badge/Tailwind_CSS-v4-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white" alt="Tailwind CSS v4" />
   <img src="https://img.shields.io/badge/Node.js-v18%2B-339933?style=for-the-badge&logo=nodedotjs&logoColor=white" alt="Node.js" />
-  <img src="https://img.shields.io/badge/Express-5.0-000000?style=for-the-badge&logo=express&logoColor=white" alt="Express 5" />
+  <img src="https://img.shields.io/badge/Express-5.2-000000?style=for-the-badge&logo=express&logoColor=white" alt="Express 5" />
   <img src="https://img.shields.io/badge/MongoDB-Mongoose_9-47A248?style=for-the-badge&logo=mongodb&logoColor=white" alt="MongoDB" />
   <img src="https://img.shields.io/badge/Socket.io-4.8-010101?style=for-the-badge&logo=socketdotio&logoColor=white" alt="Socket.io" />
   <img src="https://img.shields.io/badge/WebRTC-Mesh_P2P-333333?style=for-the-badge&logo=webrtc&logoColor=white" alt="WebRTC" />
+  <img src="https://img.shields.io/badge/Web_Speech_API-Live_Captions-FF9900?style=for-the-badge&logo=w3c&logoColor=white" alt="Web Speech API" />
   <img src="https://img.shields.io/badge/LangChain-Enabled-1C3C3C?style=for-the-badge&logo=langchain&logoColor=white" alt="LangChain" />
   <img src="https://img.shields.io/badge/Chroma_Cloud-Vector_DB-FF6B6B?style=for-the-badge&logoColor=white" alt="Chroma Cloud" />
+  <img src="https://img.shields.io/badge/Playwright-E2E_Ready-2EAD33?style=for-the-badge&logo=playwright&logoColor=white" alt="Playwright" />
   <img src="https://img.shields.io/badge/Docker-Enabled-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker" />
 </p>
 
@@ -21,7 +23,7 @@
 
 **CaseRoom** is an enterprise-grade, real-time collaborative case management and digital investigation platform. Designed for modern security operations centers (SOC), incident response squads, digital forensics units, financial fraud auditors, HR investigation teams, and legal compliance departments, CaseRoom consolidates high-stakes teamwork into a unified, secure workspace.
 
-CaseRoom eliminates fragmented communication by integrating **case-centric real-time messaging**, **low-latency WebRTC mesh audio/video conferencing**, **collaborative document and image canvas markup**, **action item and task boards**, and **automated legal compliance PDF exports** — all supercharged by a **production-hardened Cloud AI suite** powered by LangChain, Chroma Cloud Vector Store, Jina Embeddings, and an automated multi-provider LLM failover router.
+CaseRoom eliminates fragmented communication by integrating **case-centric real-time messaging**, **low-latency WebRTC mesh audio/video conferencing**, **zero-latency speech-to-text live captions & meeting transcription**, **collaborative document and image canvas markup**, **action item and task boards**, and **automated legal compliance PDF exports** — all supercharged by a **production-hardened Cloud AI suite** powered by LangChain, Chroma Cloud Vector Store, Jina Embeddings, and an automated multi-provider LLM failover router.
 
 ---
 
@@ -45,21 +47,25 @@ CaseRoom eliminates fragmented communication by integrating **case-centric real-
 ### 📹 3. WebRTC Mesh Video Conferencing & Host Suite
 - **P2P Mesh Architecture**: Ultra-low-latency, browser-native multi-party audio, video, and screen-sharing directly inside case rooms.
 - **Active Speaker Detection**: Web Audio API volume analysis dynamically highlighting active speakers with glowing visual badges.
-- **Host Moderation Suite**: Enterprise host controls including 1-click **Mute All**, **Participant Kick**, and **Meeting Room Lock**.
+- **Host Moderation Suite**: Enterprise host controls including 1-click **Mute All**, **Remote Mute Individual**, **Participant Kick**, and **Meeting Room Lock**.
 - **Floating Picture-in-Picture (PiP)**: Keep live video streams and participant tiles visible in a draggable floating window while navigating case logs, vault files, and tasks.
 - **Device Pre-Join Modal**: Live audio/video device selection, microphone input level meter, and camera preview testing before entering calls.
-- **In-Stream System Meeting Cards**: Live meeting event cards embedded directly in the chat stream with real-time status badges (*Live Now with pulsing indicator* vs *Concluded*) and context-aware action buttons.
+- **In-Stream System Meeting Cards**: Live meeting event cards embedded directly in the chat stream with real-time status badges (*Live Now with green pulsing indicator and participant count* vs *Concluded*) and context-aware action buttons.
 
-### 🎙️ 4. Meeting History & AI Breakdown Modal
-- **Past Video Meetings Panel**: Dedicated top toolbar trigger (`MeetingHistoryPanel`) with chronological meeting archive.
+### 🎙️ 4. Real-Time Speech-to-Text Live Captions & Past Meetings Hub
+- **Browser-Native Web Speech API (`useSpeechRecognition`)**: Zero-latency speech recognition streaming interim and finalized speech results without external cloud latency or cost.
+- **Live Captions Overlay (`LiveCaptionsOverlay.tsx`)**: Floating live subtitle banner rendered directly over active video grid tiles with speaker identification.
+- **Live WebSocket Transcript Streaming**: Finalized phrases emit `meeting:transcript-chunk` socket events, atomically saved to MongoDB `Meeting.transcriptEntries` and aggregated into the full meeting transcript.
+- **Past Video Meetings Panel**: Dedicated top toolbar trigger (`MeetingHistoryPanel.tsx`) with chronological meeting archive.
 - **AI Meeting Breakdown**: 1-click **"View Summary & Notes"** modal featuring:
   - **Tab 1: AI Breakdown & Tasks**: Executive summary card, key discussion topics, structured decisions, and actionable task items with 1-click **Add Task** creation.
   - **Tab 2: Raw Transcript & Notes**: Editable notes editor with **Save Notes** that auto-re-summarizes, copy dialogue to clipboard, and syntax-styled transcript viewer.
 
 ### ✏️ 5. Real-Time Interactive Canvas & Document Annotation
-- **Collaborative Canvas**: Draw directly over uploaded evidence, PDF reports, and images inside the `DocumentPreviewModal`.
+- **Collaborative Canvas**: Draw directly over uploaded evidence, PDF reports, and images inside `DocumentPreviewModal.tsx` using `MarkupToolbar.tsx`.
 - **Comprehensive Annotation Toolkit**: Pen, highlighter, text box, rectangle, and directional arrow tools with custom stroke width, color palette, and opacity sliders.
 - **WebSocket Broadcast & DB Persistence**: Multi-user drawing actions synced in real time across active participants and persisted to MongoDB.
+- **Integrated AI Document Q&A Drawer**: 1-click **"Ask AI"** button inside the markup toolbar to query document contents with page citations in `DocumentQAPanel.tsx`.
 
 ### 📋 6. Action Items & Task Tracking Board
 - **Integrated Task Board**: Track investigative action items and operational deliverables directly within case rooms.
@@ -109,13 +115,13 @@ CaseRoom incorporates an AI intelligence suite designed specifically for investi
 
 | AI Capability | Description | Technical Implementation |
 |---|---|---|
-| **Multi-Provider LLM Router** | Resilient failover router with automatic health tracking, timeout thresholds, and cooldowns. | Gemini (`gemini-3.5-flash`), Groq (`llama-3.3-70b-versatile`), Cerebras, OpenRouter, Mistral, and local Ollama. Safety settings configured to prevent false-positive blocks on forensic logs. |
-| **Cloud Vector Store & Embeddings** | Managed cloud-native vector store with 1024-dimensional semantic embeddings. | Chroma Cloud (`CloudClient`) paired with Jina AI Embeddings (`jina-embeddings-v3`). |
+| **Multi-Provider LLM Router** | Resilient failover router with automatic health tracking, timeout thresholds, and cooldowns. | Gemini (`gemini-3.5-flash`), Groq (`llama-3.3-70b-versatile`), Cerebras, OpenRouter, Mistral, and local Ollama. Safety settings configured (`BLOCK_NONE`) to prevent false-positive blocks on forensic logs. |
+| **Cloud Vector Store & Embeddings** | Managed cloud-native vector store with 1024-dimensional semantic embeddings. | Chroma Cloud (`CloudClient`) paired with Jina AI Embeddings (`jina-embeddings-v3`, 1024 dims) with semantic sender prefix awareness (`[Message from Name]:`). |
 | **Conversational RAG Assistant** | Natural-language case assistant answering complex queries from case history and evidence. | Chroma Cloud semantic retrieval, confidence scoring, prompt injection security guardrails, and clickable UI citation pills (`88% Relevance`). |
 | **Isolated Document Q&A** | Query individual uploaded PDF and Word documents without cross-document data leakage. | Document-scoped vector filtering with page and segment citation badges (`[1] Invoice_4821.pdf — Page 3`). |
 | **Cross-Case Knowledge Assistant** | Synthesize insights across multiple historical cases while strictly respecting user access privileges. | Double-layer ACL enforcement (Chroma filter + in-memory `authorizedCaseIdsSet` check) and source case diversity capping. |
 | **Contradiction & Fact Scanner** | Detect conflicting claims, inconsistent timestamps, conflicting IP addresses, or contradictory witness statements. | Claim vector similarity comparison, severity ratings, pair deduplication, and structured UI insight cards. |
-| **Investigation Timeline Generator** | Reconstruct a structured chronological event timeline from unstructured case chatter and documents. | Taxonomy mapping (`issue`, `finding`, `evidence`, `decision`, `action`, `resolution`), source snippet citations, and deterministic timestamp binding. |
+| **Investigation Timeline Generator** | Reconstruct a structured chronological event timeline from unstructured case chatter and documents. | Taxonomy mapping (`issue`, `finding`, `evidence`, `decision`, `action`, `resolution`), source snippet citations, in-memory caching (`timelineCache`), and deterministic timestamp binding. |
 | **Smart Task Extractor** | Extract actionable operational items from case conversations with automatic deduplication against MongoDB. | NLP entity extraction, existing task matching (`alreadyExists: true`), confidence ratings, and 1-click batch import. |
 | **Duplicate Case Detection** | Real-time duplicate warning during case creation to prevent redundant investigations. | Cosine similarity scoring, multi-candidate ranking (top 5), and second-stage LLM match rationale verification. |
 | **Similar Cases Recommender** | Discover related prior incidents to leverage precedent resolutions. | Hybrid scoring (85% vector similarity + 15% category match) with metadata reason pills. |
@@ -130,16 +136,17 @@ CaseRoom Platform
 ├── Frontend Application
 │   ├── Core Framework: React 19.2.4 + TypeScript ~6.0.2 + Vite 8.0.4
 │   ├── Routing & State: React Router v7.14.1 + React Contexts
-│   ├── Styling & UI: Tailwind CSS v4.2.2 + Lucide React Icons + Canvas API
-│   ├── PDF & Media: pdfjs-dist + Emoji Picker React
+│   ├── Styling & UI: Tailwind CSS v4.2.2 + Lucide React Icons + HTML5 Canvas
+│   ├── Speech-to-Text: Web Speech API (SpeechRecognition / webkitSpeechRecognition)
+│   ├── PDF & Media: pdfjs-dist 4.8 + Emoji Picker React
 │   └── Testing: Vitest 4.1 + React Testing Library 16.3 + Playwright 1.59 E2E
 │
 ├── Backend Application
 │   ├── Runtime & Server: Node.js 18+ + Express 5.2.1
 │   ├── Database & ODM: MongoDB 7 + Mongoose 9.3.0
-│   ├── Real-Time: Socket.IO 4.8.3 + WebRTC (Mesh P2P)
+│   ├── Real-Time: Socket.IO 4.8.3 + WebRTC (Mesh P2P) + Web Audio API
 │   ├── Authentication: JWT (jsonwebtoken 9.0) + Bcrypt 6.0 + Nodemailer / Brevo OTP
-│   ├── File Storage: Cloudinary (multer-storage-cloudinary)
+│   ├── File Storage: Cloudinary (multer-storage-cloudinary 4.0)
 │   ├── PDF Export: PDFKit 0.18.0 + pdf-parse + mammoth + csv-parse
 │   └── Testing: Jest 30.3 + Supertest 7.2 + mongodb-memory-server 11.0
 │
@@ -174,7 +181,7 @@ For rapid evaluation and testing, CaseRoom comes pre-configured with a comprehen
 | **General Employees** | `EMP001` - `EMP100` | Pre-registered corporate records | `TestPassword123!` | Analysts & Case Participants |
 
 > **OTP Verification Note**:
-> When logging in or registering with `TEST-ADMIN` or seeded test accounts, use OTP code **`123456`** to bypass email delivery during testing.
+> When logging in or registering with `TEST-ADMIN` or seeded test accounts, use universal test bypass OTP code **`123456`** to bypass email delivery during testing.
 
 ### 🛡️ Corporate Whitelist Security Model
 
@@ -197,40 +204,40 @@ CaseRoom/
 │   │   ├── config/                    # DB, Cloudinary, LangChain & Chroma Cloud config
 │   │   ├── controllers/               # Express Controllers (AI, Auth, Case, Meeting, etc.)
 │   │   ├── middleware/                # JWT Auth, Error Handler, Multer File Upload
-│   │   ├── models/                    # Mongoose Models (User, Case, Message, Task, AI Models)
+│   │   ├── models/                    # 13 Mongoose Models (User, Case, Message, Meeting, Task, AI Models)
 │   │   ├── routes/                    # Express 5 API Route definitions
-│   │   ├── services/                  # Core Domain Services (Auth, Case, Message, PDF, etc.)
+│   │   ├── services/                  # Core Domain Services (Auth, Case, Message, PDF, Meeting, etc.)
 │   │   │   └── ai/                    # Cloud AI Suite (RAG, Router, Timeline, Contradictions, etc.)
-│   │   │       ├── embeddings/        # Jina AI Embeddings provider
-│   │   │       └── llm/               # Multi-Provider Router & Factory (Gemini, Groq, Mistral, etc.)
-│   │   ├── sockets/                   # Socket.IO Event Handlers & WebRTC Signaling
+│   │   │       ├── embeddings/        # Jina AI Embeddings provider (1024 dims)
+│   │   │       └── llm/               # Multi-Provider Router & Factory (Gemini, Groq, Mistral, Ollama, etc.)
+│   │   ├── sockets/                   # Socket.IO Event Handlers & WebRTC Signaling / Captions
 │   │   ├── app.js                     # Express app setup & middleware configuration
 │   │   └── server.js                  # HTTP server bootstrap & Socket.IO initialization
-│   ├── scripts/                       # Backfill and indexing utility scripts
-│   ├── tests/                         # Jest + Supertest integration & unit test suites
+│   ├── scripts/                       # Backfill and indexing utility scripts (backfillAll.js)
+│   ├── tests/                         # Jest + Supertest integration & unit test suites (17 suites)
 │   ├── Dockerfile                     # Multi-stage production backend container
 │   ├── seed.js                        # Comprehensive database seed script
 │   └── package.json
 │
 ├── Frontend/                          # React 19 + TypeScript + Vite SPA
-│   ├── e2e/                           # Playwright End-to-End test suites & fixtures
+│   ├── e2e/                           # Playwright End-to-End test suites & fixtures (9 specs)
 │   ├── src/
-│   │   ├── components/                # Modular UI components
+│   │   ├── components/                # Modular UI components (9 feature folders)
 │   │   │   ├── auth/                  # Login, Register, Forgot Password forms
 │   │   │   ├── cases/                 # Case Sidebar, Settings, Search, Similar Cases
 │   │   │   ├── chat/                  # Chat View, Message Bubbles, Canvas, Vault, AI Panels
-│   │   │   ├── meeting/               # WebRTC Video Grid, PiP, Controls, Pre-Join, History
+│   │   │   ├── meeting/               # WebRTC Video Grid, PiP, Controls, Pre-Join, Live Captions, History
 │   │   │   ├── notifications/         # Notification Bell, List, Toasts
 │   │   │   ├── participants/          # Participant Roster & Role Assignment
 │   │   │   ├── profile/               # User Profile, Avatar Cropper, Password Change
 │   │   │   ├── tasks/                 # Task Panel, AI Task Extractor Modal
 │   │   │   └── ui/                    # Reusable Design System (Modals, Badges, Inputs, Spinners)
 │   │   ├── contexts/                  # React Contexts (Auth, Socket, Meeting, Notification)
-│   │   ├── hooks/                     # Custom React Hooks (useMessages, usePresence, etc.)
+│   │   ├── hooks/                     # 15 Custom React Hooks (useMessages, useSpeechRecognition, etc.)
 │   │   ├── pages/                     # Top-level routes (Login, Register, Dashboard)
 │   │   ├── services/                  # Axios REST services & WebRTC Peer Manager
 │   │   ├── types/                     # Shared TypeScript interfaces & types
-│   │   ├── App.tsx                    # Route definitions & application layout
+│   │   ├── App.tsx                    # Route definitions & application layout (React Router v7)
 │   │   └── main.tsx                   # React root entry point
 │   ├── Dockerfile                     # Nginx production frontend container
 │   ├── nginx.conf                     # Nginx reverse proxy configuration
@@ -242,6 +249,7 @@ CaseRoom/
 ├── docker-compose.yml                 # Multi-service Docker container orchestration
 ├── render.yaml                        # Render cloud deployment blueprint
 ├── .env.example                       # Complete environment variable template
+├── explanation.md                     # In-depth technical architecture explanation
 └── README.md                          # Master project documentation
 ```
 
@@ -285,6 +293,7 @@ MONGODB_URI=mongodb://localhost:27017/caseroom
 # =========================
 JWT_SECRET=your_super_secret_jwt_key_caseroom_2026
 JWT_EXPIRES_IN=7d
+FRONTEND_URL=http://localhost:5173
 
 # =========================
 # CLOUDINARY FILE STORAGE
@@ -297,6 +306,8 @@ CLOUDINARY_FOLDER=caseroom/attachments
 # =========================
 # EMAIL / OTP DELIVERY (BREVO / SMTP)
 # =========================
+EMAIL_USER=your_gmail@gmail.com
+EMAIL_APP_PASSWORD=your_gmail_app_password
 BREVO_API_KEY=your_brevo_api_key
 EMAIL_FROM=noreply@caseroom.com
 
@@ -406,7 +417,7 @@ CaseRoom implements a four-layer testing architecture ensuring rock-solid stabil
 │                               │ (17 Test Suites, 200+ Assertions)               │
 ├───────────────────────────────┼─────────────────────────────────────────────────┤
 │ 2. Frontend Component Tests   │ Vitest + React Testing Library + jsdom          │
-│                               │ (63+ Test Suites, 360+ Unit/Component Tests)   │
+│                               │ (65 Test Suites, 377 Unit/Component Tests)      │
 ├───────────────────────────────┼─────────────────────────────────────────────────┤
 │ 3. End-to-End (E2E) Tests     │ Playwright + Chromium Route Interception        │
 │                               │ (9 E2E Spec Suites covering all critical flows) │
@@ -457,35 +468,59 @@ npm run test:e2e:ui               # Playwright Interactive UI Mode
 - `POST /api/v1/auth/login/verify` — Verify OTP and issue signed JWT access token.
 - `POST /api/v1/auth/forgot-password/send-otp` — Dispatch password reset OTP.
 - `POST /api/v1/auth/forgot-password/reset` — Reset password using verified OTP.
+- `POST /api/v1/auth/resend-otp` — Resend active OTP code.
+- `POST /api/v1/auth/signout` — Sign out active session.
 - `GET /api/v1/auth/me` — Retrieve active authenticated session profile.
+- `PATCH /api/v1/auth/phone` — Update user telephone number.
+- `POST /api/v1/auth/change-password` — Change user password.
 - `PATCH /api/v1/auth/profile-picture` — Upload and crop profile avatar via Cloudinary.
 - `GET /api/v1/users/search` — Search verified employee directory.
+- `GET /api/v1/users/profile` & `PUT /api/v1/users/profile` — Fetch and update user profile.
 
 ### Case Operations & Collaboration (`/api/v1/cases`)
 - `GET /api/v1/cases` — List accessible cases for authenticated user with pagination.
-- `POST /api/v1/cases` — Create new investigation case (with automatic embedding).
+- `POST /api/v1/cases` — Create new investigation case (with automatic vector embedding).
 - `GET /api/v1/cases/:id` — Retrieve full case details and participant list.
+- `DELETE /api/v1/cases/:id` — Delete investigation case (Admin only).
 - `PUT /api/v1/cases/:id/status` — Update case workflow status (`Open`, `In Progress`, `Resolved`, `Closed`).
 - `PUT /api/v1/cases/:id/archive` & `PUT /api/v1/cases/:id/unarchive` — Archive/unarchive case.
 - `PUT /api/v1/cases/:id/pin` & `DELETE /api/v1/cases/:id/pin` — Toggle personal case sidebar pin.
 - `PUT /api/v1/cases/:id/participants` — Update participant roles and add/remove members.
+- `GET /api/v1/cases/:id/participants` — Retrieve participant roster for case.
 - `GET /api/v1/cases/:id/export-pdf` — Stream comprehensive PDFKit compliance audit report.
+- `GET /api/v1/cases/:caseId/meeting/active` — Retrieve active WebRTC meeting instance for case.
+- `GET /api/v1/cases/:caseId/meetings/history` — Retrieve past video meeting archive for case.
+- `PUT /api/v1/cases/:caseId/meetings/:meetingId/transcript` — Update meeting transcript/notes and re-summarize.
 
 ### Messages, Media Vault & Annotations
 - `GET /api/v1/cases/:id/messages` — Fetch paginated chat history with replies and reactions.
+- `GET /api/v1/cases/:id/messages/search` — Search message content within case.
+- `GET /api/v1/cases/:id/messages/page/:messageId` — Deep-link message page calculation.
 - `POST /api/v1/cases/:id/messages/upload` — Upload media/document attachment and create message.
 - `PATCH /api/v1/cases/:id/messages/:messageId` — Edit message content.
 - `DELETE /api/v1/cases/:id/messages/:messageId` — Soft-delete message.
+- `GET /api/v1/cases/:id/messages/pinned` — List pinned messages.
 - `POST /api/v1/cases/:id/messages/:messageId/pin` — Pin message to case header.
+- `DELETE /api/v1/cases/:id/messages/:messageId/pin` — Unpin message from case header.
 - `GET /api/v1/cases/:id/vault` — Retrieve categorized media vault items (Images, Docs, Media, Links).
+- `GET /api/v1/cases/:id/unread-count` — Retrieve unread message count for case.
 - `GET /api/v1/cases/:caseId/annotations` — Fetch canvas annotations for image/PDF evidence.
 - `POST /api/v1/cases/:caseId/annotations` — Create canvas annotation with live WebSocket broadcast.
+- `PUT /api/v1/cases/:caseId/annotations/:annotationId` — Update canvas annotation.
+- `DELETE /api/v1/cases/:caseId/annotations/:annotationId` — Delete canvas annotation.
 
 ### Tasks & Action Items (`/api/v1/cases/:caseId/tasks`)
 - `GET /api/v1/cases/:caseId/tasks` — List action items with assignee and priority filters.
 - `POST /api/v1/cases/:caseId/tasks` — Create new task with due date and assignees.
 - `PATCH /api/v1/cases/:caseId/tasks/:taskId` — Update task status (`todo`, `in_progress`, `done`).
 - `DELETE /api/v1/cases/:caseId/tasks/:taskId` — Delete task.
+
+### Notifications (`/api/v1/notifications`)
+- `GET /api/v1/notifications` — Retrieve notifications for active user.
+- `GET /api/v1/notifications/unread-count` — Retrieve unread notification count.
+- `PUT /api/v1/notifications/mark-all-read` — Mark all user notifications as read.
+- `PUT /api/v1/notifications/:id/read` — Mark single notification as read.
+- `DELETE /api/v1/notifications/:id` — Delete notification.
 
 ### AI Investigation Services (`/api/v1/ai`)
 - `POST /api/v1/ai/chat-summary` — Generate structured JSON summary of case discussion.
@@ -497,25 +532,47 @@ npm run test:e2e:ui               # Playwright Interactive UI Mode
 - `POST /api/v1/ai/duplicate-check` — Real-time duplicate case detection during creation.
 - `GET /api/v1/ai/similar-cases/:caseId` — Fetch related past cases using hybrid vector similarity.
 - `POST /api/v1/ai/contradictions` & `GET /api/v1/ai/contradictions/:caseId` — Scan and list contradictory claims.
+- `PATCH /api/v1/ai/insights/:insightId` — Update AI insight review status.
 - `GET /api/v1/ai/search` — Hybrid vector + keyword semantic search.
+- `GET /api/v1/ai/conversations` — List user AI assistant conversation histories.
+- `GET /api/v1/ai/conversations/:conversationId` — Retrieve full conversation turn history.
+- `PATCH /api/v1/ai/conversations/:conversationId` — Update AI conversation title.
+- `DELETE /api/v1/ai/conversations/:conversationId` — Delete AI conversation.
+- `POST /api/v1/ai/index/backfill` — Queue background indexing backfill for specific case.
+- `POST /api/v1/ai/index/backfill-all` — Queue background indexing backfill for ALL active cases.
+- `GET /api/v1/ai/index/jobs/:jobId` — Retrieve indexing job execution status.
 
 ---
 
 ## ⚡ WebSocket Real-Time Event Architecture
 
-| Channel / Event | Direction | Payload & Description |
+| Event Name | Direction | Payload & Description |
 |---|---|---|
-| `case:join` / `case:leave` | Client → Server | Join or leave case room socket namespace. |
-| `message:send` / `message:new` | Bidirectional | Real-time message dispatch and broadcast. |
-| `message:edit` / `message:delete` | Bidirectional | Message modification and soft-deletion sync. |
-| `message:reaction` | Bidirectional | Emoji reaction addition or removal. |
-| `message:pin` / `message:unpin` | Bidirectional | Dynamic WhatsApp-style pinned banner updates. |
-| `typing:start` / `typing:stop` | Bidirectional | Real-time typing indicators with auto-timeout. |
-| `presence:status` | Server → Client | Broadcast user online, offline, and last seen state. |
-| `annotation:draw` | Bidirectional | Real-time canvas drawing coordinates and shape sync. |
-| `meeting:join` / `meeting:signal` | Bidirectional | WebRTC mesh peer signaling (SDP offers, answers, ICE candidates). |
-| `meeting:host_action` | Bidirectional | Host controls: Mute all participants, kick user, lock room. |
-| `notification:new` | Server → Client | Instant push alerts for `@` mentions, assignments, and calls. |
+| `join_case` / `leave_case` | Client → Server | Join or leave case room socket namespace (`case_${caseId}`). |
+| `send_message` / `new_message` | Bidirectional | Real-time chat message dispatch and broadcast. |
+| `edit_message` / `message_edited` | Bidirectional | Message content update broadcast. |
+| `delete_message` / `message_deleted` | Bidirectional | Message soft-deletion sync. |
+| `toggle_reaction` / `reaction_updated` | Bidirectional | Emoji reaction addition or removal. |
+| `mark_read` / `message_read` | Bidirectional | Real-time read receipt updates. |
+| `typing_start` / `typing_stop` | Bidirectional | Real-time typing indicators with auto-timeout. |
+| `get_online_users` / `online_users` | Bidirectional | Online participant list query and sync. |
+| `user_online` / `user_offline` | Server → Client | Broadcast user online, offline, and last seen state. |
+| `annotation:create` / `annotation:created` | Bidirectional | Real-time canvas drawing coordinates and shape sync. |
+| `annotation:update` / `annotation:updated` | Bidirectional | Real-time canvas drawing update sync. |
+| `annotation:delete` / `annotation:deleted` | Bidirectional | Real-time canvas drawing deletion sync. |
+| `meeting:join` / `meeting:joined` | Bidirectional | WebRTC room entry and active peer list handshake. |
+| `meeting:offer` / `meeting:answer` | Bidirectional | WebRTC mesh peer signaling (SDP offers and answers). |
+| `meeting:ice-candidate` | Bidirectional | WebRTC ICE candidate network discovery relay. |
+| `meeting:toggle-media` / `meeting:media-state` | Bidirectional | Broadcast microphone/camera mute status. |
+| `meeting:screen-share-started` / `meeting:screen-share-stopped` | Bidirectional | Real-time screen share toggle broadcast. |
+| `meeting:raise-hand` / `meeting:user-hand-raised` | Bidirectional | Participant raise hand notification. |
+| `meeting:host-mute-all` / `meeting:force-mute` | Bidirectional | Host control: Force mute all participant microphones. |
+| `meeting:host-remove-user` / `meeting:user-kicked` | Bidirectional | Host control: Kick/remove participant from call. |
+| `meeting:lock-toggle` / `meeting:lock-changed` | Bidirectional | Host control: Lock or unlock meeting room. |
+| `meeting:transcript-chunk` | Bidirectional | Real-time speech-to-text live subtitle streaming and persistence. |
+| `meeting:leave` / `meeting:user-left` | Bidirectional | Participant departure and cleanup. |
+| `meeting:ended` | Server → Client | Broadcast meeting conclusion when last participant exits. |
+| `notification` | Server → Client | Instant push alerts for `@` mentions, task assignments, and calls. |
 
 ---
 
@@ -533,4 +590,3 @@ The repository includes a ready-to-deploy `render.yaml` configuration:
 3. Configure `VITE_API_URL` and `VITE_SOCKET_URL` pointing to your production backend.
 
 ---
-
