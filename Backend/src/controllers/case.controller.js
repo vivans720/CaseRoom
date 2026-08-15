@@ -1,5 +1,6 @@
 const caseService = require("../services/case.service.js");
 const Message = require("../models/Message");
+const Task = require("../models/Task");
 const pdfService = require("../services/pdf.service.js");
 
 // controller to handle creating new case
@@ -284,15 +285,23 @@ const exportCasePdf = async (req, res, next) => {
       })
       .lean();
 
-    // 4. Set headers for PDF download
+    // 4. Fetch all tasks for this case
+    const tasks = await Task.find({ caseId })
+      .sort({ createdAt: 1 })
+      .populate("assignees", "name email employeeId")
+      .populate("createdBy", "name email employeeId")
+      .populate("completedBy", "name email employeeId")
+      .lean();
+
+    // 5. Set headers for PDF download
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader(
       "Content-Disposition",
       `attachment; filename="Case-Chat-Export-${caseId}.pdf"`
     );
 
-    // 5. Generate and stream PDF
-    await pdfService.generateCaseChatPdf(caseDoc, messages, res);
+    // 6. Generate and stream PDF
+    await pdfService.generateCaseChatPdf(caseDoc, messages, tasks, res);
   } catch (error) {
     next(error);
   }

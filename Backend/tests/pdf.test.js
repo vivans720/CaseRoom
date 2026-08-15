@@ -85,6 +85,65 @@ describe("Case Chat PDF Export API", () => {
       expect(response.headers["content-disposition"]).toContain(`Case-Chat-Export-${testCase._id}.pdf`);
       expect(response.body).toBeDefined();
     });
+
+    it("should export full dossier with tasks and attachments when populated", async () => {
+      const Message = require("../src/models/Message");
+      const Task = require("../src/models/Task");
+
+      // Add messages (text + attachment)
+      await Message.create({
+        caseId: testCase._id,
+        senderId: creatorUser._id,
+        content: "Please inspect attached report @PARTICIPANT",
+        type: "text",
+      });
+
+      await Message.create({
+        caseId: testCase._id,
+        senderId: participantUser._id,
+        content: "Attached forensic finding",
+        type: "document",
+        fileName: "Forensic_Report.pdf",
+        fileUrl: "https://example.com/forensic.pdf",
+        fileSize: 204800,
+      });
+
+      // Add tasks
+      await Task.create({
+        caseId: testCase._id,
+        title: "Review audit trails",
+        description: "Examine system transaction logs",
+        status: "in_progress",
+        priority: "high",
+        assignees: [participantUser._id],
+        createdBy: creatorUser._id,
+        dueDate: new Date("2026-09-01"),
+      });
+
+      await Task.create({
+        caseId: testCase._id,
+        title: "Interview suspect",
+        status: "done",
+        priority: "critical",
+        assignees: [creatorUser._id],
+        createdBy: creatorUser._id,
+        completedBy: creatorUser._id,
+        completedAt: new Date(),
+      });
+
+      // Archive case
+      await request(app)
+        .put(`/api/v1/cases/${testCase._id}/archive`)
+        .set(getAuthHeader(creatorToken));
+
+      const response = await request(app)
+        .get(`/api/v1/cases/${testCase._id}/export-pdf`)
+        .set(getAuthHeader(creatorToken));
+
+      expect(response.status).toBe(200);
+      expect(response.headers["content-type"]).toBe("application/pdf");
+      expect(response.body).toBeDefined();
+    });
   });
 
   describe("cleanTextForPdf Unicode/Emoji cleaning utility", () => {

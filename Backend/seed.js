@@ -305,7 +305,7 @@ const seedDatabase = async () => {
             ...cDef,
             participants: participantUsers.map((id) => ({
               user: id,
-              role: id.toString() === cDef.creatorId.toString() ? "Admin" : "Editor",
+              role: (id.toString() === cDef.creatorId.toString() || id.toString() === adminUser._id.toString()) ? "Admin" : "Editor",
             })),
           },
         },
