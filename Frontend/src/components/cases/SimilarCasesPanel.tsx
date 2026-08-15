@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
-import { Sparkles, ExternalLink, RefreshCw, X, FolderSearch, ArrowRight } from "lucide-react"
+import { Sparkles, ExternalLink, RefreshCw, X, FolderSearch } from "lucide-react"
 import aiService, { type SimilarCaseItem } from "../../services/aiService"
 import { Spinner } from "../ui/Spinner"
 

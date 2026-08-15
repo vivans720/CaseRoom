@@ -5,7 +5,7 @@ import { DocumentPreviewModal } from "./DocumentPreviewModal";
 import { useMeeting } from "../../hooks/useMeeting";
 import { useSocketContext } from "../../contexts/SocketContext";
 import { getActiveMeeting } from "../../services/meetingService";
-import { Video, Check, Users, Clock } from "lucide-react";
+import { Video, Check, Users } from "lucide-react";
 
 interface MessageBubbleProps {
   message: Message;

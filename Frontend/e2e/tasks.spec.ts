@@ -5,9 +5,10 @@ test.describe("Task Panel in Case Room", () => {
   test("task panel toggle opens panel with task list", async ({ page }) => {
     await navigateToCase(page)
 
-    // Open task panel — button may have aria-label or text
+    // Open task panel — button is inside More options dropdown
+    await page.click("button[aria-label='More options']")
     const taskButton = page
-      .locator("button[aria-label*='ask' i], button[aria-label*='Task' i]")
+      .locator("button[aria-label='Tasks']")
       .or(page.getByRole("button", { name: /tasks/i }))
       .first()
     await taskButton.click()
@@ -21,8 +22,9 @@ test.describe("Task Panel in Case Room", () => {
     await navigateToCase(page)
 
     // Open task panel
+    await page.click("button[aria-label='More options']")
     const taskButton = page
-      .locator("button[aria-label*='ask' i], button[aria-label*='Task' i]")
+      .locator("button[aria-label='Tasks']")
       .or(page.getByRole("button", { name: /tasks/i }))
       .first()
     await taskButton.click()

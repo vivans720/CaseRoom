@@ -245,7 +245,8 @@ test.describe("Case Settings", () => {
     await page.getByRole('link', { name: 'Case: To Be Deleted Case' }).click();
     await page.waitForURL("**/case/case-to-delete", { timeout: 5000 });
 
-    // Open settings panel via the settings button in the chat header
+    // Open settings panel via the settings button in the chat header more options dropdown
+    await page.click('button[aria-label="More options"]');
     await page.click('button[aria-label="Case settings"]');
 
     await expect(

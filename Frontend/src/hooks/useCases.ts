@@ -67,14 +67,6 @@ export const useCases = (): UseCasesReturn => {
     }
   }, []);
   
-  const refreshUnreadCounts = useCallback(async (): Promise<void> => {
-    try {
-      const counts = await fetchUnreadCounts(cases);
-      setUnreadCounts(counts);
-    } catch (err) {
-      console.error("Failed to refresh unread counts:", err);
-    }
-  }, [cases]);
 
   useEffect(() => {
     fetchCases();
