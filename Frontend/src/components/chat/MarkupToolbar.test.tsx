@@ -14,17 +14,24 @@ describe("MarkupToolbar", () => {
     onZoomIn: vi.fn(),
     onZoomOut: vi.fn(),
     onResetZoom: vi.fn(),
+    onFitWidth: vi.fn(),
+    onFitPage: vi.fn(),
     rotation: 0,
     onRotateLeft: vi.fn(),
     onRotateRight: vi.fn(),
+    onUndo: vi.fn(),
+    canUndo: true,
+    onRedo: vi.fn(),
+    canRedo: true,
     currentPage: 1,
     totalPages: 3,
     onPageChange: vi.fn(),
-    onClearAnnotations: vi.fn(),
     onDownload: vi.fn(),
     onClose: vi.fn(),
     showNotesSidebar: false,
     onToggleNotesSidebar: vi.fn(),
+    showAiSidebar: false,
+    onToggleAiSidebar: vi.fn(),
     annotationCount: 2,
     isPdf: true,
   };
@@ -32,7 +39,8 @@ describe("MarkupToolbar", () => {
   it("renders toolbar buttons and page info for PDF", () => {
     render(<MarkupToolbar {...defaultProps} />);
 
-    expect(screen.getByText("Page 1 / 3")).toBeInTheDocument();
+    expect(screen.getByDisplayValue("1")).toBeInTheDocument();
+    expect(screen.getByText("/ 3")).toBeInTheDocument();
     expect(screen.getByText("100%")).toBeInTheDocument();
     expect(screen.getByText("Notes (2)")).toBeInTheDocument();
   });
@@ -40,32 +48,47 @@ describe("MarkupToolbar", () => {
   it("calls tool select callback when pen tool clicked", () => {
     render(<MarkupToolbar {...defaultProps} />);
 
-    const penBtn = screen.getByTitle("Freehand Pen");
+    const penBtn = screen.getByLabelText("Freehand Pen");
     fireEvent.click(penBtn);
 
     expect(defaultProps.onSelectTool).toHaveBeenCalledWith("pen");
   });
 
-  it("calls zoom in and zoom out callbacks", () => {
+  it("calls zoom in, zoom out, fit width, and undo callbacks", () => {
     render(<MarkupToolbar {...defaultProps} />);
 
-    const zoomInBtn = screen.getByTitle("Zoom In");
+    const zoomInBtn = screen.getByLabelText("Zoom in");
     fireEvent.click(zoomInBtn);
     expect(defaultProps.onZoomIn).toHaveBeenCalled();
 
-    const zoomOutBtn = screen.getByTitle("Zoom Out");
+    const zoomOutBtn = screen.getByLabelText("Zoom out");
     fireEvent.click(zoomOutBtn);
     expect(defaultProps.onZoomOut).toHaveBeenCalled();
+
+    const fitWidthBtn = screen.getByLabelText("Fit to width");
+    fireEvent.click(fitWidthBtn);
+    expect(defaultProps.onFitWidth).toHaveBeenCalled();
+
+    const undoBtn = screen.getByLabelText("Undo");
+    fireEvent.click(undoBtn);
+    expect(defaultProps.onUndo).toHaveBeenCalled();
   });
 
   it("calls page change on page navigation buttons", () => {
     render(<MarkupToolbar {...defaultProps} />);
 
-    const prevButtons = screen.getAllByRole("button");
-    const nextBtn = prevButtons.find((btn) => btn.querySelector(".lucide-chevron-right"));
-    if (nextBtn) {
-      fireEvent.click(nextBtn);
-      expect(defaultProps.onPageChange).toHaveBeenCalledWith(2);
-    }
+    const nextBtn = screen.getByLabelText("Next page");
+    fireEvent.click(nextBtn);
+    expect(defaultProps.onPageChange).toHaveBeenCalledWith(2);
+  });
+
+  it("handles direct page input change and commit on Enter or blur", () => {
+    render(<MarkupToolbar {...defaultProps} />);
+
+    const pageInput = screen.getByLabelText("Page number");
+    fireEvent.change(pageInput, { target: { value: "3" } });
+    fireEvent.blur(pageInput);
+
+    expect(defaultProps.onPageChange).toHaveBeenCalledWith(3);
   });
 });
