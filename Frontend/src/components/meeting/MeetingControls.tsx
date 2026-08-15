@@ -225,7 +225,9 @@ export const MeetingControls = ({
           }`}
           title={
             isCaptionsEnabled
-              ? "Hide Live Captions on screen"
+              ? isTranscribing && mediaState.audio
+                ? "Hide Live Captions (Transcribing mic)"
+                : "Hide Live Captions (Mic muted)"
               : "Show Live Captions on screen"
           }
         >
